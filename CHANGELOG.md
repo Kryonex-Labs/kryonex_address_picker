@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.0.3
+
+### Changed
+- Updated `pubspec.yaml` metadata for the `0.0.3` release.
+  - Package version bumped to `0.0.3`.
+  - Updated `homepage` URL and added `documentation` metadata.
+
 ## 0.0.2
 
 ### Added
