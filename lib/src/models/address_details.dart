@@ -1,57 +1,68 @@
 /// Additional delivery details for an address.
 ///
-/// Collected on the detail screen after map confirmation.
-/// All fields are optional — the consumer decides which to display
-/// via [AddressDetailField].
+/// Collected on the detail sheet after map confirmation. Values are stored in
+/// a keyed [values] map, where each key is an [AddressFieldSpec.key]. This lets
+/// consumers define arbitrary custom fields beyond the built-in apt / floor /
+/// delivery-notes set.
+///
+/// The legacy [apt], [floor], and [deliveryNotes] getters remain available as
+/// convenience accessors over [values].
 class AddressDetails {
-  const AddressDetails({
-    this.apt,
-    this.floor,
-    this.deliveryNotes,
-  });
+  /// Creates details from a keyed [values] map.
+  const AddressDetails.fromValues(this.values);
 
-  /// Apartment, suite, or unit number.
-  final String? apt;
+  /// Convenience constructor for the three built-in fields.
+  ///
+  /// Prefer [AddressDetails.fromValues] for custom field sets.
+  AddressDetails({
+    String? apt,
+    String? floor,
+    String? deliveryNotes,
+  }) : values = {
+          if (apt != null) 'apt': apt,
+          if (floor != null) 'floor': floor,
+          if (deliveryNotes != null) 'deliveryNotes': deliveryNotes,
+        };
 
-  /// Floor / level.
-  final String? floor;
+  /// All collected field values, keyed by [AddressFieldSpec.key].
+  ///
+  /// Empty fields are omitted (not stored as `null`).
+  final Map<String, String?> values;
 
-  /// Free-form delivery instructions.
-  final String? deliveryNotes;
+  /// Apartment, suite, or unit number (built-in `apt` field).
+  String? get apt => values['apt'];
 
-  /// Whether any detail field has been filled in.
-  bool get isEmpty => apt == null && floor == null && deliveryNotes == null;
+  /// Floor / level (built-in `floor` field).
+  String? get floor => values['floor'];
+
+  /// Free-form delivery instructions (built-in `deliveryNotes` field).
+  String? get deliveryNotes => values['deliveryNotes'];
+
+  /// The value for an arbitrary field [key], or `null` if not present.
+  String? operator [](String key) => values[key];
+
+  /// Whether no detail field has been filled in.
+  bool get isEmpty => values.values.every((v) => v == null || v.isEmpty);
 
   /// Whether at least one detail field has a value.
   bool get isNotEmpty => !isEmpty;
 
-  /// Creates a copy with the given fields replaced.
-  AddressDetails copyWith({
-    String? apt,
-    String? floor,
-    String? deliveryNotes,
-  }) {
-    return AddressDetails(
-      apt: apt ?? this.apt,
-      floor: floor ?? this.floor,
-      deliveryNotes: deliveryNotes ?? this.deliveryNotes,
-    );
+  /// Creates a copy, merging [values] over the existing entries.
+  AddressDetails copyWith({Map<String, String?>? values}) {
+    return AddressDetails.fromValues({
+      ...this.values,
+      if (values != null) ...values,
+    });
   }
 
-  /// Serializes to JSON map.
-  Map<String, dynamic> toJson() => {
-        'apt': apt,
-        'floor': floor,
-        'deliveryNotes': deliveryNotes,
-      };
+  /// Serializes to a JSON map (the raw [values]).
+  Map<String, dynamic> toJson() => {...values};
 
-  /// Deserializes from JSON map.
+  /// Deserializes from a JSON map.
   factory AddressDetails.fromJson(Map<String, dynamic> json) {
-    return AddressDetails(
-      apt: json['apt'] as String?,
-      floor: json['floor'] as String?,
-      deliveryNotes: json['deliveryNotes'] as String?,
-    );
+    return AddressDetails.fromValues({
+      for (final entry in json.entries) entry.key: entry.value as String?,
+    });
   }
 
   @override
@@ -59,14 +70,28 @@ class AddressDetails {
       identical(this, other) ||
       other is AddressDetails &&
           runtimeType == other.runtimeType &&
-          apt == other.apt &&
-          floor == other.floor &&
-          deliveryNotes == other.deliveryNotes;
+          _mapEquals(values, other.values);
 
   @override
-  int get hashCode => apt.hashCode ^ floor.hashCode ^ deliveryNotes.hashCode;
+  int get hashCode {
+    // Order-independent hash over the entries.
+    var hash = 0;
+    for (final entry in values.entries) {
+      hash ^= entry.key.hashCode ^ entry.value.hashCode;
+    }
+    return hash;
+  }
 
   @override
-  String toString() =>
-      'AddressDetails(apt: $apt, floor: $floor, notes: $deliveryNotes)';
+  String toString() => 'AddressDetails($values)';
+
+  static bool _mapEquals(Map<String, String?> a, Map<String, String?> b) {
+    if (a.length != b.length) return false;
+    for (final entry in a.entries) {
+      if (!b.containsKey(entry.key) || b[entry.key] != entry.value) {
+        return false;
+      }
+    }
+    return true;
+  }
 }

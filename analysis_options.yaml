@@ -16,3 +16,4 @@ analyzer:
     missing_return: error
   exclude:
     - '**/*.g.dart'
+    - 'example/**'

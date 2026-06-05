@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
 import 'package:latlong2/latlong.dart';
 
-import '../models/address_detail_field.dart';
+import '../models/address_field_spec.dart';
 
 /// Configuration for the address picker.
 ///
@@ -20,6 +20,15 @@ class AddressPickerConfig {
     this.detailFields,
     this.searchHint,
     this.mapZoom = 16.0,
+    this.detailSheetTitle = 'Add details',
+    this.detailSheetSubtitle,
+    this.saveButtonLabel = 'Save address',
+    this.sheetBlurSigma = 18.0,
+    this.sheetCornerRadius = 28.0,
+    this.sheetAccentColor,
+    this.showDragHandle = true,
+    this.sheetDismissible = true,
+    this.sheetEnableDrag = true,
   });
 
   /// Explicit ForUI theme. Takes highest priority.
@@ -48,13 +57,16 @@ class AddressPickerConfig {
   /// Maximum number of recent addresses to display. Default: 5.
   final int maxRecentAddresses;
 
-  /// Whether to show the address detail screen (apt, floor, notes).
+  /// Whether to show the address detail sheet (apt, floor, notes).
   /// Default: true.
   final bool showDetailScreen;
 
-  /// Which detail fields to show. Default: all fields.
-  /// Order determines display order.
-  final List<AddressDetailField>? detailFields;
+  /// Which detail fields to show, and in what order.
+  ///
+  /// Compose [AddressFieldSpec] presets ([AddressFieldSpec.apt],
+  /// [AddressFieldSpec.floor], [AddressFieldSpec.deliveryNotes]) with your own
+  /// custom fields. Defaults to all three built-in fields.
+  final List<AddressFieldSpec>? detailFields;
 
   /// Placeholder text for the search bar.
   final String? searchHint;
@@ -62,7 +74,35 @@ class AddressPickerConfig {
   /// Default zoom level when centering the map on an address.
   final double mapZoom;
 
-  /// The detail fields to display, defaulting to all if not specified.
-  List<AddressDetailField> get effectiveDetailFields =>
-      detailFields ?? AddressDetailField.values;
+  /// Title shown at the top of the detail sheet. Default: 'Add details'.
+  final String detailSheetTitle;
+
+  /// Optional subtitle shown beneath [detailSheetTitle].
+  final String? detailSheetSubtitle;
+
+  /// Label for the sheet's primary save button. Default: 'Save address'.
+  final String saveButtonLabel;
+
+  /// Gaussian blur sigma applied behind the frosted-glass sheet. Default: 18.
+  final double sheetBlurSigma;
+
+  /// Corner radius of the sheet's top edge. Default: 28.
+  final double sheetCornerRadius;
+
+  /// Accent colour for the save button's glow. Defaults to the theme primary.
+  final Color? sheetAccentColor;
+
+  /// Whether to show the drag handle at the top of the sheet. Default: true.
+  final bool showDragHandle;
+
+  /// Whether tapping the scrim dismisses the sheet. Default: true.
+  final bool sheetDismissible;
+
+  /// Whether the sheet can be dragged down to dismiss. Default: true.
+  final bool sheetEnableDrag;
+
+  /// The detail fields to display, defaulting to the built-in set if not
+  /// specified.
+  List<AddressFieldSpec> get effectiveDetailFields =>
+      detailFields ?? AddressFieldSpec.defaults;
 }

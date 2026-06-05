@@ -44,8 +44,6 @@ class _AddressPickerFlow extends StatefulWidget {
 }
 
 class _AddressPickerFlowState extends State<_AddressPickerFlow> {
-  StructuredAddress? _confirmedAddress;
-
   void _onAddressSelected(StructuredAddress address) {
     // Navigate to map confirmation.
     Navigator.of(context).push(
@@ -72,39 +70,41 @@ class _AddressPickerFlowState extends State<_AddressPickerFlow> {
     );
   }
 
-  void _onMapConfirmed(StructuredAddress address) {
-    _confirmedAddress = address;
-
-    if (widget.config.showDetailScreen) {
-      // Navigate to detail screen.
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => AddressDetailScreen(
-            config: widget.config,
-            address: address,
-            detailFields: widget.config.effectiveDetailFields,
-            onSave: _onDetailsSaved,
-          ),
-        ),
-      );
-    } else {
-      // Skip detail screen — return immediately.
+  Future<void> _onMapConfirmed(StructuredAddress address) async {
+    if (!widget.config.showDetailScreen) {
+      // Skip detail step — return immediately.
       _returnResult(address, null);
+      return;
     }
-  }
 
-  void _onDetailsSaved(AddressDetails details) {
-    if (_confirmedAddress != null) {
-      _returnResult(_confirmedAddress!, details);
+    // Present the detail sheet as a frosted-glass modal over the map.
+    final details = await showAddressDetailSheet(
+      context,
+      config: widget.config,
+      address: address,
+      fields: widget.config.effectiveDetailFields,
+    );
+
+    if (!mounted) return;
+
+    if (details != null) {
+      _returnResult(address, details);
     }
+    // A null result means the sheet was dismissed; the user stays on the map
+    // to re-confirm or pick a different location.
   }
 
   void _returnResult(StructuredAddress address, AddressDetails? details) {
     final result = SelectedAddress(address: address, details: details);
 
-    // Pop all the way back to the caller.
-    Navigator.of(context).popUntil((route) => route.isFirst);
-    Navigator.of(context).pop(result);
+    final navigator = Navigator.of(context);
+    final flowRoute = ModalRoute.of(context);
+
+    // Pop the intermediate screens (map confirm, detail) stacked above the
+    // picker flow, then pop the flow route itself with the result so it is
+    // delivered to the `showAddressPicker` caller.
+    navigator.popUntil((route) => route == flowRoute);
+    navigator.pop(result);
   }
 
   @override
