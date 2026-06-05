@@ -80,6 +80,7 @@ class _HomePageState extends State<HomePage> {
                         const Divider(),
                         _row('Apt', _selectedAddress!.details!.apt),
                         _row('Floor', _selectedAddress!.details!.floor),
+                        _row('Gate', _selectedAddress!.details!['gate']),
                         _row('Notes', _selectedAddress!.details!.deliveryNotes),
                       ],
                     ],
@@ -101,6 +102,22 @@ class _HomePageState extends State<HomePage> {
         maxRecentAddresses: 5,
         showDetailScreen: true,
         countryCodes: ['IN', 'US'],
+        detailSheetSubtitle: 'Help your courier find the door',
+        detailFields: [
+          AddressFieldSpec.apt,
+          AddressFieldSpec.floor,
+          // A custom field with quick-fill chips and validation.
+          AddressFieldSpec(
+            key: 'gate',
+            label: 'Gate code',
+            hint: 'e.g. 1234',
+            icon: Icons.pin_outlined,
+            keyboardType: TextInputType.number,
+            quickFills: ['1234', '0000', 'Call me'],
+          ),
+          AddressFieldSpec.postalCode,
+          AddressFieldSpec.deliveryNotes,
+        ],
       ),
     );
 
