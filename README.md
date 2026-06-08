@@ -67,7 +67,7 @@ _Search · confirm on map · capture details — all in one flow._
       <sub>See <a href="example/lib/main.dart"><code>example/lib/main.dart</code></a> · <code>HomePage</code></sub>
     </td>
     <td valign="top">
-      Debounced Photon autocomplete, <code>Use current location</code>, and
+      Debounced Photon autocomplete, <code>Use current location</code> (opens map confirm at the resolved location), and
       <code>Pick on Map</code> entry points. Recent picks appear here too.<br/>
       <sub>See <a href="lib/src/screens/search_screen.dart"><code>lib/src/screens/search_screen.dart</code></a></sub>
     </td>
@@ -118,14 +118,18 @@ Powered by [Komoot Photon](https://photon.komoot.io) (OpenStreetMap data, no API
 ## ⟶ Features
 
 ```
-◆ Search-first        debounced Photon autocomplete
-◆ Map confirmation    tap-to-drop pin on an interactive OSM map
-◆ Structured output   street · city · state · postal · country · latLng
-◆ Address details     apt · floor · delivery notes
-◆ Recent addresses    locally persisted picks
-◆ Current location    one-tap geolocator support
-◆ ForUI native        polished, accessible UI out of the box
-◆ Zero-config theming  auto-bridges to your Material theme
+◆ Search-first           debounced Photon autocomplete
+◆ Map confirmation       tap-to-drop pin on an interactive OSM map
+◆ Structured output      street · city · state · postal · country · latLng
+◆ Address details        apt · floor · delivery notes
+◆ Recent addresses       locally persisted picks
+◆ Current location        opens map confirm after resolving coordinates
+◆ Map styling            light / dark / auto tile mode
+◆ Custom pin marker      `pinBuilder` support for any marker widget
+◆ Confirm button styling override via `confirmButtonStyle`
+◆ Attribution control    declarative OSM attribution and alignment
+◆ ForUI native           polished, accessible UI out of the box
+◆ Zero-config theming    auto-bridges to your Material theme
 ```
 
 ## ⟶ Install
@@ -223,10 +227,24 @@ AddressFieldSpec.postalCode,
 `country`, `countryCode`, `latitude`, `longitude`, `primaryLine`,
 `secondaryLine`.
 
+You can also use `AddressAttributeReader.readAttribute(attribute)` to extract any
+attribute value as a string.
+
 The sheet's appearance is configurable too — see `detailSheetTitle`,
 `detailSheetSubtitle`, `saveButtonLabel`, `sheetBlurSigma`,
 `sheetCornerRadius`, `sheetAccentColor`, `showDragHandle`, `sheetDismissible`,
 and `sheetEnableDrag` in the table below.
+
+### Map customization
+
+The picker also supports map-specific customization via `AddressPickerConfig`.
+Use the configuration fields below to:
+
+- toggle tile dark mode with `MapDarkMode.auto`, `MapDarkMode.light`, or `MapDarkMode.dark`
+- render a custom map pin via `pinBuilder`
+- override the confirm button style with `confirmButtonStyle`
+- control OSM attribution via `AddressPickerAttribution.osm` or a custom `AddressPickerAttribution`
+- position attribution in the map corners with `MapAttributionAlignment.bottomLeft` or `MapAttributionAlignment.bottomRight`
 
 ## ⟶ Configuration
 
@@ -242,6 +260,10 @@ and `sheetEnableDrag` in the table below.
 | `detailFields`        | `List<AddressFieldSpec>?` | apt, floor, notes | Which detail fields to display, and in what order                                         |
 | `searchHint`          | `String?`                 | `null`            | Search bar placeholder (falls back to `"Search for an address..."`)                       |
 | `mapZoom`             | `double`                  | `16.0`            | Default map zoom level                                                                    |
+| `mapDarkMode`         | `MapDarkMode`             | `auto`            | Controls tile dark-mode emulation: `auto`, `light`, or `dark`                             |
+| `pinBuilder`          | `WidgetBuilder?`          | `null`            | Custom map pin widget builder; renders instead of the default `MapPin`                    |
+| `confirmButtonStyle`  | `ButtonStyle?`            | `null`            | Override the style of the Confirm Address button                                         |
+| `attributionStyle`    | `AddressPickerAttribution?` | `AddressPickerAttribution.osm` | Configures OSM attribution text, URI, background, and alignment; set to `null` to hide it |
 | `detailSheetTitle`    | `String`                  | `"Add details"`   | Title at the top of the detail sheet                                                      |
 | `detailSheetSubtitle` | `String?`                 | `null`            | Optional subtitle under the title                                                         |
 | `saveButtonLabel`     | `String`                  | `"Save address"`  | Label for the sheet's save button                                                         |
