@@ -4,6 +4,58 @@ import 'package:latlong2/latlong.dart';
 
 import '../models/address_field_spec.dart';
 
+/// Controls how the map tiles emulate dark mode via a [ColorFilter].
+enum MapDarkMode {
+  /// Follow the ambient [ThemeData.brightness] (default).
+  auto,
+
+  /// Force light tiles — no filter applied.
+  light,
+
+  /// Force dark tiles — invert + hue-rotate filter applied.
+  dark,
+}
+
+/// Declarative configuration for the map attribution widget.
+///
+/// Pass `null` as [AddressPickerConfig.attributionStyle] to disable
+/// attribution entirely. The default factory [AddressPickerAttribution.osmDefault]
+/// renders the required OpenStreetMap attribution to comply with OSM tile
+/// usage policy.
+class AddressPickerAttribution {
+  const AddressPickerAttribution({
+    required this.text,
+    this.uri,
+    this.backgroundColor,
+    this.textStyle,
+    this.alignment = MapAttributionAlignment.bottomRight,
+  });
+
+  /// Standard OpenStreetMap attribution, required by OSM tile usage policy.
+  static const AddressPickerAttribution osm = AddressPickerAttribution(
+    text: '© OpenStreetMap contributors',
+    uri: 'https://openstreetmap.org/copyright',
+  );
+
+  /// Attribution label shown on the map.
+  final String text;
+
+  /// Optional URL opened when the user taps the attribution.
+  final String? uri;
+
+  /// Background color of the attribution chip.
+  final Color? backgroundColor;
+
+  /// Text style for the attribution label.
+  final TextStyle? textStyle;
+
+  /// Where to anchor the attribution widget on the map.
+  final MapAttributionAlignment alignment;
+}
+
+/// Alignment options for [AddressPickerAttribution].
+enum MapAttributionAlignment { bottomLeft, bottomRight }
+
 /// Configuration for the address picker.
 ///
 /// All fields are optional — sensible defaults are applied. Pass
@@ -29,6 +81,10 @@ class AddressPickerConfig {
     this.showDragHandle = true,
     this.sheetDismissible = true,
     this.sheetEnableDrag = true,
+    this.mapDarkMode = MapDarkMode.auto,
+    this.pinBuilder,
+    this.confirmButtonStyle,
+    this.attributionStyle = AddressPickerAttribution.osm,
   });
 
   /// Explicit ForUI theme. Takes highest priority.
@@ -100,6 +156,24 @@ class AddressPickerConfig {
 
   /// Whether the sheet can be dragged down to dismiss. Default: true.
   final bool sheetEnableDrag;
+
+  /// Controls tile dark-mode emulation. [MapDarkMode.auto] (default) follows
+  /// the ambient [ThemeData.brightness].
+  final MapDarkMode mapDarkMode;
+
+  /// Custom map pin widget builder. When null, a default [MapPin] is rendered
+  /// using [ColorScheme.primary] as its color.
+  final WidgetBuilder? pinBuilder;
+
+  /// Style applied to the Confirm Address button.
+  ///
+  /// When null, a default style is derived from [sheetAccentColor] ??
+  /// [ColorScheme.primary].
+  final ButtonStyle? confirmButtonStyle;
+
+  /// Attribution widget configuration. Defaults to [AddressPickerAttribution.osm]
+  /// (required by OSM tile usage policy). Set to `null` to suppress attribution.
+  final AddressPickerAttribution? attributionStyle;
 
   /// The detail fields to display, defaulting to the built-in set if not
   /// specified.

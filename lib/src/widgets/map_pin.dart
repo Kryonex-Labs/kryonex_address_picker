@@ -19,7 +19,7 @@ class MapPin extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final pinColor = color ?? Colors.black;
+    final pinColor = color ?? Theme.of(context).colorScheme.primary;
 
     return Icon(
       Icons.location_pin,

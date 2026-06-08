@@ -28,4 +28,9 @@ export 'src/models/selected_address.dart';
 export 'src/models/structured_address.dart';
 
 // Configuration
-export 'src/theme/picker_theme.dart' show AddressPickerConfig;
+export 'src/theme/picker_theme.dart'
+    show
+        AddressPickerConfig,
+        AddressPickerAttribution,
+        MapAttributionAlignment,
+        MapDarkMode;

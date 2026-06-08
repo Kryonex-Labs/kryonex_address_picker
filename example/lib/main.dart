@@ -5,8 +5,17 @@ void main() {
   runApp(const ExampleApp());
 }
 
-class ExampleApp extends StatelessWidget {
+class ExampleApp extends StatefulWidget {
   const ExampleApp({super.key});
+
+  @override
+  State<ExampleApp> createState() => _ExampleAppState();
+}
+
+class _ExampleAppState extends State<ExampleApp> {
+  ThemeMode _themeMode = ThemeMode.system;
+
+  void _setThemeMode(ThemeMode mode) => setState(() => _themeMode = mode);
 
   @override
   Widget build(BuildContext context) {
@@ -18,13 +27,24 @@ class ExampleApp extends StatelessWidget {
         brightness: Brightness.dark,
         useMaterial3: true,
       ),
-      home: const HomePage(),
+      themeMode: _themeMode,
+      home: HomePage(
+        themeMode: _themeMode,
+        onThemeModeChanged: _setThemeMode,
+      ),
     );
   }
 }
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  const HomePage({
+    super.key,
+    required this.themeMode,
+    required this.onThemeModeChanged,
+  });
+
+  final ThemeMode themeMode;
+  final ValueChanged<ThemeMode> onThemeModeChanged;
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -33,21 +53,124 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   SelectedAddress? _selectedAddress;
 
+  // ─── Demo knobs ───────────────────────────────────────────────────────────
+
+  /// Which dark-mode strategy to use for map tiles.
+  MapDarkMode _mapDarkMode = MapDarkMode.auto;
+
+  /// Whether to replace the built-in pin with a custom widget.
+  bool _useCustomPin = false;
+
+  /// Whether to apply a custom confirm-button style.
+  bool _useCustomButtonStyle = false;
+
+  /// Whether to show OSM attribution (null = suppress, non-null = show).
+  bool _showAttribution = true;
+
+  /// Whether to use a custom attribution label.
+  bool _useCustomAttribution = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Address Picker Example')),
+      appBar: AppBar(
+        title: const Text('Address Picker Example'),
+        actions: [
+          // Quick toggle between light / dark / system so testers can
+          // exercise mapDarkMode: auto without editing code.
+          PopupMenuButton<ThemeMode>(
+            icon: const Icon(Icons.brightness_6),
+            tooltip: 'Theme mode',
+            onSelected: widget.onThemeModeChanged,
+            itemBuilder: (_) => const [
+              PopupMenuItem(value: ThemeMode.system, child: Text('System')),
+              PopupMenuItem(value: ThemeMode.light, child: Text('Light')),
+              PopupMenuItem(value: ThemeMode.dark, child: Text('Dark')),
+            ],
+          ),
+        ],
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // ── Config knobs ──────────────────────────────────────────────
+            _SectionHeader('Map dark mode'),
+            SegmentedButton<MapDarkMode>(
+              segments: const [
+                ButtonSegment(
+                  value: MapDarkMode.auto,
+                  label: Text('Auto'),
+                  icon: Icon(Icons.brightness_auto),
+                ),
+                ButtonSegment(
+                  value: MapDarkMode.light,
+                  label: Text('Light'),
+                  icon: Icon(Icons.light_mode),
+                ),
+                ButtonSegment(
+                  value: MapDarkMode.dark,
+                  label: Text('Dark'),
+                  icon: Icon(Icons.dark_mode),
+                ),
+              ],
+              selected: {_mapDarkMode},
+              onSelectionChanged: (s) =>
+                  setState(() => _mapDarkMode = s.first),
+            ),
+            const SizedBox(height: 16),
+            _SectionHeader('Pin & button'),
+            SwitchListTile(
+              title: const Text('Custom pin builder'),
+              subtitle: const Text(
+                'Replaces the default MapPin with a coloured star icon',
+              ),
+              value: _useCustomPin,
+              onChanged: (v) => setState(() => _useCustomPin = v),
+            ),
+            SwitchListTile(
+              title: const Text('Custom confirmButtonStyle'),
+              subtitle: const Text(
+                'Overrides the Confirm Address button with a teal style',
+              ),
+              value: _useCustomButtonStyle,
+              onChanged: (v) => setState(() => _useCustomButtonStyle = v),
+            ),
+            const SizedBox(height: 16),
+            _SectionHeader('Attribution'),
+            SwitchListTile(
+              title: const Text('Show attribution'),
+              subtitle: const Text(
+                'Disable to suppress the OSM attribution widget '
+                '(not recommended — violates OSM tile policy)',
+              ),
+              value: _showAttribution,
+              onChanged: (v) => setState(() => _showAttribution = v),
+            ),
+            if (_showAttribution)
+              SwitchListTile(
+                title: const Text('Custom attribution label'),
+                subtitle: const Text(
+                  'Uses a custom text and left-side alignment instead of '
+                  'the default OSM text',
+                ),
+                value: _useCustomAttribution,
+                onChanged: (v) => setState(() => _useCustomAttribution = v),
+              ),
+
+            const SizedBox(height: 24),
+
+            // ── Launch button ────────────────────────────────────────────
             FilledButton.icon(
               onPressed: _openPicker,
               icon: const Icon(Icons.location_on),
               label: const Text('Pick an Address'),
             ),
+
             const SizedBox(height: 24),
+
+            // ── Result card ──────────────────────────────────────────────
             if (_selectedAddress != null) ...[
               Card(
                 child: Padding(
@@ -95,18 +218,46 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _openPicker() async {
+    // Resolve the effective attribution based on the demo knobs.
+    final AddressPickerAttribution? attribution = !_showAttribution
+        ? null
+        : _useCustomAttribution
+        ? const AddressPickerAttribution(
+            text: 'Tiles by Example Corp',
+            alignment: MapAttributionAlignment.bottomLeft,
+          )
+        : AddressPickerAttribution.osm;
+
     final result = await showAddressPicker(
       context,
-      config: const AddressPickerConfig(
+      config: AddressPickerConfig(
         searchHint: 'Where to?',
         maxRecentAddresses: 5,
         showDetailScreen: true,
-        countryCodes: ['IN', 'US'],
+        countryCodes: const ['IN', 'US'],
         detailSheetSubtitle: 'Help your courier find the door',
-        detailFields: [
+        // ── New theming fields ────────────────────────────────────────────
+        mapDarkMode: _mapDarkMode,
+        pinBuilder: _useCustomPin
+            ? (context) => Icon(
+                  Icons.star,
+                  size: 40,
+                  color: Theme.of(context).colorScheme.tertiary,
+                )
+            : null,
+        confirmButtonStyle: _useCustomButtonStyle
+            ? FilledButton.styleFrom(
+                backgroundColor: Colors.teal,
+                foregroundColor: Colors.white,
+                minimumSize: const Size.fromHeight(52),
+                shape: const StadiumBorder(),
+              )
+            : null,
+        attributionStyle: attribution,
+        // ── Other existing fields ─────────────────────────────────────────
+        detailFields: const [
           AddressFieldSpec.apt,
           AddressFieldSpec.floor,
-          // A custom field with quick-fill chips and validation.
           AddressFieldSpec(
             key: 'gate',
             label: 'Gate code',
@@ -142,6 +293,22 @@ class _HomePageState extends State<HomePage> {
           ),
           Expanded(child: Text(value)),
         ],
+      ),
+    );
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader(this.text);
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Text(
+        text,
+        style: Theme.of(context).textTheme.labelLarge,
       ),
     );
   }

@@ -21,8 +21,11 @@ class CurrentLocationState {
   /// Human-readable error message if location fetch failed.
   final String? error;
 
-  /// Trigger a one-shot location fetch.
-  final Future<void> Function() fetch;
+  /// Trigger a one-shot location fetch. Returns the resolved location and
+  /// error directly so callers can react without waiting for a rebuild
+  /// (the snapshot they captured at build time is stale by the time the
+  /// future completes).
+  final Future<({LatLng? location, String? error})> Function() fetch;
 }
 
 /// A hook that provides one-shot current location via [Geolocator].
@@ -37,45 +40,48 @@ CurrentLocationState useCurrentLocation() {
   final isLoading = useState(false);
   final error = useState<String?>(null);
 
-  Future<void> fetch() async {
+  Future<({LatLng? location, String? error})> fetch() async {
     isLoading.value = true;
     error.value = null;
-    
+
     debugPrint('Fetching current location...');
 
+    String? fail(String message) {
+      error.value = message;
+      isLoading.value = false;
+      return message;
+    }
+
     try {
-      // Check if location services are enabled.
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
-        error.value = 'Location services are disabled. '
-            'Please enable them in Settings.';
-        isLoading.value = false;
         debugPrint('Location services disabled.');
-        return;
+        return (
+          location: null,
+          error: fail('Location services are disabled. '
+              'Please enable them in Settings.'),
+        );
       }
 
-      // Check and request permission.
       var permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         debugPrint('Location permission requested: $permission');
         if (permission == LocationPermission.denied) {
-          error.value = 'Location permission denied.';
-          isLoading.value = false;
           debugPrint('Location permission denied.');
-          return;
+          return (location: null, error: fail('Location permission denied.'));
         }
       }
 
       if (permission == LocationPermission.deniedForever) {
-        error.value = 'Location permission permanently denied. '
-            'Please enable it in Settings.';
-        isLoading.value = false;
         debugPrint('Location permission permanently denied.');
-        return;
+        return (
+          location: null,
+          error: fail('Location permission permanently denied. '
+              'Please enable it in Settings.'),
+        );
       }
 
-      // Fetch position.
       final position = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
           accuracy: LocationAccuracy.high,
@@ -83,13 +89,17 @@ CurrentLocationState useCurrentLocation() {
         ),
       );
 
-      location.value = LatLng(position.latitude, position.longitude);
+      final resolved = LatLng(position.latitude, position.longitude);
+      location.value = resolved;
       isLoading.value = false;
-      debugPrint('Current location fetched: ${location.value}');
+      debugPrint('Current location fetched: $resolved');
+      return (location: resolved, error: null);
     } catch (e) {
-      error.value = 'Failed to get current location.';
-      isLoading.value = false;
       debugPrint('Error fetching location: $e');
+      return (
+        location: null,
+        error: fail('Failed to get current location.'),
+      );
     }
   }
 

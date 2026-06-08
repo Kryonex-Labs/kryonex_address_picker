@@ -8,6 +8,7 @@ Geocoding · map confirmation · structured output — in one call.
 `showAddressPicker(context)` → a fully-typed address.
 
 <!-- pub.dev badges resolve once the package is published to pub.dev -->
+
 [![Pub Version](https://img.shields.io/pub/v/kryonex_address_picker.svg)](https://pub.dev/packages/kryonex_address_picker)
 [![Pub Likes](https://img.shields.io/pub/likes/kryonex_address_picker)](https://pub.dev/packages/kryonex_address_picker)
 [![Pub Points](https://img.shields.io/pub/points/kryonex_address_picker)](https://pub.dev/packages/kryonex_address_picker)
@@ -37,11 +38,71 @@ Geocoding · map confirmation · structured output — in one call.
 
 <div align="center">
 
-<video src="https://github.com/Kryonex-Labs/kryonex_address_picker/raw/develop/assets/example.mp4" controls width="320"></video>
+<!-- <img src="https://github.com/user-attachments/assets/680951ca-1451-44c1-b68e-dabe2def02b0" controls width="320"></img> -->
+<img width="288" height="640" alt="example" src="https://github.com/user-attachments/assets/680951ca-1451-44c1-b68e-dabe2def02b0" />
 
 _Search · confirm on map · capture details — all in one flow._
 
 </div>
+
+### Screenshots
+
+#### Part 1 — Finding a location
+
+<table>
+  <tr>
+    <td align="center" width="33%"><b>1. Entry point</b></td>
+    <td align="center" width="33%"><b>2. Search</b></td>
+    <td align="center" width="33%"><b>3. Map confirm</b></td>
+  </tr>
+  <tr>
+    <td><img width="288" height="640" src="assets/screen-shots/1.jpeg" alt="Host app entry point" /></td>
+    <td><img width="288" height="640" src="assets/screen-shots/2.jpeg" alt="Search screen" /></td>
+    <td><img width="288" height="640" src="assets/screen-shots/3.jpeg" alt="Map confirm screen" /></td>
+  </tr>
+  <tr>
+    <td valign="top">
+      Host app launches the picker by calling
+      <code>showAddressPicker(context)</code>.<br/>
+      <sub>See <a href="example/lib/main.dart"><code>example/lib/main.dart</code></a> · <code>HomePage</code></sub>
+    </td>
+    <td valign="top">
+      Debounced Photon autocomplete, <code>Use current location</code>, and
+      <code>Pick on Map</code> entry points. Recent picks appear here too.<br/>
+      <sub>See <a href="lib/src/screens/search_screen.dart"><code>lib/src/screens/search_screen.dart</code></a></sub>
+    </td>
+    <td valign="top">
+      Tap-to-drop pin on an OSM map with reverse geocoding, a "Locate Me" FAB,
+      and the live address card.<br/>
+      <sub>See <a href="lib/src/screens/map_confirm_screen.dart"><code>lib/src/screens/map_confirm_screen.dart</code></a></sub>
+    </td>
+  </tr>
+</table>
+
+#### Part 2 — Capturing details & result
+
+<table>
+  <tr>
+    <td align="center" width="50%"><b>4. Detail sheet</b></td>
+    <td align="center" width="50%"><b>5. Result</b></td>
+  </tr>
+  <tr>
+    <td><img width="288" height="640" src="assets/screen-shots/4.jpeg" alt="Detail bottom sheet" /></td>
+    <td><img width="288" height="640" src="assets/screen-shots/5.jpeg" alt="Selected address result" /></td>
+  </tr>
+  <tr>
+    <td valign="top">
+      Frosted-glass bottom sheet collecting custom fields — Apt, Floor, a
+      custom Gate code with quick-fill chips, Postal Code, and Delivery Notes.<br/>
+      <sub>Configured via <code>AddressFieldSpec</code> — see the <a href="#-configurable-detail-fields">Configurable detail fields</a> section</sub>
+    </td>
+    <td valign="top">
+      The returned <code>SelectedAddress</code> rendered back in the host app —
+      structured address fields plus the captured detail values.<br/>
+      <sub>See <a href="example/lib/main.dart"><code>example/lib/main.dart</code></a> · result rendering</sub>
+    </td>
+  </tr>
+</table>
 
 ---
 
@@ -147,27 +208,27 @@ and `sheetEnableDrag` in the table below.
 
 ## ⟶ Configuration
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `theme` | `FThemeData?` | `null` | Explicit ForUI theme (highest priority) |
-| `materialTheme` | `ThemeData?` | `null` | Material theme to auto-bridge |
-| `initialLocation` | `LatLng?` | `null` | Initial map center |
-| `countryCodes` | `List<String>?` | `null` | ISO country-code filter for search (takes priority over `localeAwareSearch`) |
-| `localeAwareSearch` | `bool` | `true` | Auto-restrict results to the device locale's country (ignored when `countryCodes` is set) |
-| `maxRecentAddresses` | `int` | `5` | Max recent addresses to store |
-| `showDetailScreen` | `bool` | `true` | Show the detail sheet after map confirm |
-| `detailFields` | `List<AddressFieldSpec>?` | apt, floor, notes | Which detail fields to display, and in what order |
-| `searchHint` | `String?` | `null` | Search bar placeholder (falls back to `"Search for an address..."`) |
-| `mapZoom` | `double` | `16.0` | Default map zoom level |
-| `detailSheetTitle` | `String` | `"Add details"` | Title at the top of the detail sheet |
-| `detailSheetSubtitle` | `String?` | `null` | Optional subtitle under the title |
-| `saveButtonLabel` | `String` | `"Save address"` | Label for the sheet's save button |
-| `sheetBlurSigma` | `double` | `18.0` | Backdrop blur strength behind the sheet |
-| `sheetCornerRadius` | `double` | `28.0` | Sheet top corner radius |
-| `sheetAccentColor` | `Color?` | theme primary | Glow colour of the save button |
-| `showDragHandle` | `bool` | `true` | Show the drag handle |
-| `sheetDismissible` | `bool` | `true` | Tap-scrim to dismiss |
-| `sheetEnableDrag` | `bool` | `true` | Drag-down to dismiss |
+| Parameter             | Type                      | Default           | Description                                                                               |
+| --------------------- | ------------------------- | ----------------- | ----------------------------------------------------------------------------------------- |
+| `theme`               | `FThemeData?`             | `null`            | Explicit ForUI theme (highest priority)                                                   |
+| `materialTheme`       | `ThemeData?`              | `null`            | Material theme to auto-bridge                                                             |
+| `initialLocation`     | `LatLng?`                 | `null`            | Initial map center                                                                        |
+| `countryCodes`        | `List<String>?`           | `null`            | ISO country-code filter for search (takes priority over `localeAwareSearch`)              |
+| `localeAwareSearch`   | `bool`                    | `true`            | Auto-restrict results to the device locale's country (ignored when `countryCodes` is set) |
+| `maxRecentAddresses`  | `int`                     | `5`               | Max recent addresses to store                                                             |
+| `showDetailScreen`    | `bool`                    | `true`            | Show the detail sheet after map confirm                                                   |
+| `detailFields`        | `List<AddressFieldSpec>?` | apt, floor, notes | Which detail fields to display, and in what order                                         |
+| `searchHint`          | `String?`                 | `null`            | Search bar placeholder (falls back to `"Search for an address..."`)                       |
+| `mapZoom`             | `double`                  | `16.0`            | Default map zoom level                                                                    |
+| `detailSheetTitle`    | `String`                  | `"Add details"`   | Title at the top of the detail sheet                                                      |
+| `detailSheetSubtitle` | `String?`                 | `null`            | Optional subtitle under the title                                                         |
+| `saveButtonLabel`     | `String`                  | `"Save address"`  | Label for the sheet's save button                                                         |
+| `sheetBlurSigma`      | `double`                  | `18.0`            | Backdrop blur strength behind the sheet                                                   |
+| `sheetCornerRadius`   | `double`                  | `28.0`            | Sheet top corner radius                                                                   |
+| `sheetAccentColor`    | `Color?`                  | theme primary     | Glow colour of the save button                                                            |
+| `showDragHandle`      | `bool`                    | `true`            | Show the drag handle                                                                      |
+| `sheetDismissible`    | `bool`                    | `true`            | Tap-scrim to dismiss                                                                      |
+| `sheetEnableDrag`     | `bool`                    | `true`            | Drag-down to dismiss                                                                      |
 
 ## ⟶ Output Model
 
