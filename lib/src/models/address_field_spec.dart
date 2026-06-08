@@ -1,6 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart' show Icons, TextInputAction;
 
+import 'address_attribute.dart';
+
 /// Describes a single editable field on the address detail sheet.
 ///
 /// Specs are fully composable: combine the built-in presets ([apt], [floor],
@@ -40,6 +42,7 @@ class AddressFieldSpec {
     this.textInputAction,
     this.validator,
     this.quickFills,
+    this.prefillFrom,
   }) : assert(maxLines > 0, 'maxLines must be greater than zero');
 
   /// Stable identifier. Used as the key in [AddressDetails.values] and as the
@@ -79,6 +82,11 @@ class AddressFieldSpec {
   /// field. Tapping a chip sets the field's value.
   final List<String>? quickFills;
 
+  /// When set, the detail sheet pre-populates this field with the matching
+  /// attribute of the confirmed address. The user can still edit the value
+  /// before saving.
+  final AddressAttribute? prefillFrom;
+
   /// Apartment, suite, or unit number. Mirrors the original built-in field.
   static const AddressFieldSpec apt = AddressFieldSpec(
     key: 'apt',
@@ -112,6 +120,7 @@ class AddressFieldSpec {
     hint: 'e.g. 12345',
     icon: Icons.local_post_office_outlined,
     keyboardType: TextInputType.text,
+    prefillFrom: AddressAttribute.postalCode,
   );
 
   /// The default set of fields, used when no custom list is configured.

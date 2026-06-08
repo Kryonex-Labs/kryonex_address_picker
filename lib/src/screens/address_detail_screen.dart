@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 
+import '../models/address_attribute.dart';
 import '../models/address_details.dart';
 import '../models/address_field_spec.dart';
 import '../models/structured_address.dart';
@@ -62,9 +63,14 @@ class AddressDetailSheet extends HookWidget {
     // changes, and disposed when this widget leaves the tree.
     final controllers = useMemoized(
       () => {
-        for (final field in detailFields) field.key: TextEditingController(),
+        for (final field in detailFields)
+          field.key: TextEditingController(
+            text: field.prefillFrom == null
+                ? ''
+                : address.readAttribute(field.prefillFrom!) ?? '',
+          ),
       },
-      [detailFields],
+      [detailFields, address],
     );
     useEffect(
       () => () {

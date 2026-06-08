@@ -201,6 +201,28 @@ result.details?['gate'];      // "1234"
 result.details?.apt;          // built-in convenience getter, still works
 ```
 
+#### Pre-filling fields from the confirmed address
+
+Use `prefillFrom` to seed a field with an attribute captured during map
+confirmation. The user can still edit the value before saving.
+
+```dart
+AddressFieldSpec(
+  key: 'city',
+  label: 'City',
+  icon: Icons.location_city_outlined,
+  prefillFrom: AddressAttribute.city,   // seeds the field on sheet open
+),
+
+// The built-in postalCode preset pre-fills automatically:
+AddressFieldSpec.postalCode,
+```
+
+`AddressAttribute` covers every field on `StructuredAddress`:
+`displayName`, `street`, `houseNumber`, `city`, `state`, `postalCode`,
+`country`, `countryCode`, `latitude`, `longitude`, `primaryLine`,
+`secondaryLine`.
+
 The sheet's appearance is configurable too — see `detailSheetTitle`,
 `detailSheetSubtitle`, `saveButtonLabel`, `sheetBlurSigma`,
 `sheetCornerRadius`, `sheetAccentColor`, `showDragHandle`, `sheetDismissible`,

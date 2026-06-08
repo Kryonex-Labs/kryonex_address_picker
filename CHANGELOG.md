@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.0.5
+
+### Added
+- `AddressAttribute` enum covering every captured field on a confirmed
+  `StructuredAddress` (`displayName`, `street`, `houseNumber`, `city`,
+  `state`, `postalCode`, `country`, `countryCode`, `latitude`, `longitude`,
+  `primaryLine`, `secondaryLine`), plus an `AddressAttributeReader` extension
+  (`readAttribute(AddressAttribute)`) to extract values as strings.
+- `AddressFieldSpec.prefillFrom` (`AddressAttribute?`) — when set, the detail
+  sheet pre-populates that field from the matching attribute of the confirmed
+  address before the user edits it.
+- `AddressFieldSpec.postalCode` preset now pre-fills from
+  `AddressAttribute.postalCode` by default.
+
+### Changed
+- Example app demonstrates `prefillFrom` on Street and City custom fields.
+
 ## 0.0.4
 
 ### Added

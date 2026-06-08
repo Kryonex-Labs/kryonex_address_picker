@@ -20,6 +20,7 @@ library;
 export 'src/address_picker.dart' show showAddressPicker;
 
 // Models
+export 'src/models/address_attribute.dart';
 export 'src/models/address_detail_field.dart';
 export 'src/models/address_details.dart';
 export 'src/models/address_field_spec.dart';
