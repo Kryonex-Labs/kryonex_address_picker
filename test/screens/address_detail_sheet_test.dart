@@ -96,6 +96,62 @@ void main() {
       expect(saved?.apt, '4B');
     });
 
+    testWidgets('prefillFrom pre-populates the field with the address attribute',
+        (tester) async {
+      await pumpSheet(
+        tester,
+        fields: const [
+          AddressFieldSpec(
+            key: 'city',
+            label: 'City',
+            prefillFrom: AddressAttribute.city,
+          ),
+          AddressFieldSpec.postalCode,
+        ],
+      );
+
+      final address = buildAddress();
+      expect(find.text(address.city!), findsOneWidget);
+      expect(find.text(address.postalCode!), findsOneWidget);
+    });
+
+    testWidgets('prefilled values are returned on save',
+        (tester) async {
+      AddressDetails? saved;
+      final address = buildAddress();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => ElevatedButton(
+                onPressed: () async {
+                  saved = await showModalBottomSheet<AddressDetails>(
+                    context: context,
+                    isScrollControlled: true,
+                    builder: (_) => AddressDetailSheet(
+                      config: const AddressPickerConfig(),
+                      address: address,
+                      detailFields: const [AddressFieldSpec.postalCode],
+                    ),
+                  );
+                },
+                child: const Text('open'),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Save address'));
+      await tester.pumpAndSettle();
+
+      expect(saved?['postalCode'], address.postalCode);
+    });
+
     testWidgets('save with empty field leaves that key absent from values',
         (tester) async {
       AddressDetails? saved;

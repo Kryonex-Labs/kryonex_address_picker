@@ -28,10 +28,7 @@ class _ExampleAppState extends State<ExampleApp> {
         useMaterial3: true,
       ),
       themeMode: _themeMode,
-      home: HomePage(
-        themeMode: _themeMode,
-        onThemeModeChanged: _setThemeMode,
-      ),
+      home: HomePage(themeMode: _themeMode, onThemeModeChanged: _setThemeMode),
     );
   }
 }
@@ -90,128 +87,133 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // ── Config knobs ──────────────────────────────────────────────
-            _SectionHeader('Map dark mode'),
-            SegmentedButton<MapDarkMode>(
-              segments: const [
-                ButtonSegment(
-                  value: MapDarkMode.auto,
-                  label: Text('Auto'),
-                  icon: Icon(Icons.brightness_auto),
-                ),
-                ButtonSegment(
-                  value: MapDarkMode.light,
-                  label: Text('Light'),
-                  icon: Icon(Icons.light_mode),
-                ),
-                ButtonSegment(
-                  value: MapDarkMode.dark,
-                  label: Text('Dark'),
-                  icon: Icon(Icons.dark_mode),
-                ),
-              ],
-              selected: {_mapDarkMode},
-              onSelectionChanged: (s) =>
-                  setState(() => _mapDarkMode = s.first),
-            ),
-            const SizedBox(height: 16),
-            _SectionHeader('Pin & button'),
-            SwitchListTile(
-              title: const Text('Custom pin builder'),
-              subtitle: const Text(
-                'Replaces the default MapPin with a coloured star icon',
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // ── Config knobs ──────────────────────────────────────────────
+              _SectionHeader('Map dark mode'),
+              SegmentedButton<MapDarkMode>(
+                segments: const [
+                  ButtonSegment(
+                    value: MapDarkMode.auto,
+                    label: Text('Auto'),
+                    icon: Icon(Icons.brightness_auto),
+                  ),
+                  ButtonSegment(
+                    value: MapDarkMode.light,
+                    label: Text('Light'),
+                    icon: Icon(Icons.light_mode),
+                  ),
+                  ButtonSegment(
+                    value: MapDarkMode.dark,
+                    label: Text('Dark'),
+                    icon: Icon(Icons.dark_mode),
+                  ),
+                ],
+                selected: {_mapDarkMode},
+                onSelectionChanged: (s) =>
+                    setState(() => _mapDarkMode = s.first),
               ),
-              value: _useCustomPin,
-              onChanged: (v) => setState(() => _useCustomPin = v),
-            ),
-            SwitchListTile(
-              title: const Text('Custom confirmButtonStyle'),
-              subtitle: const Text(
-                'Overrides the Confirm Address button with a teal style',
-              ),
-              value: _useCustomButtonStyle,
-              onChanged: (v) => setState(() => _useCustomButtonStyle = v),
-            ),
-            const SizedBox(height: 16),
-            _SectionHeader('Attribution'),
-            SwitchListTile(
-              title: const Text('Show attribution'),
-              subtitle: const Text(
-                'Disable to suppress the OSM attribution widget '
-                '(not recommended — violates OSM tile policy)',
-              ),
-              value: _showAttribution,
-              onChanged: (v) => setState(() => _showAttribution = v),
-            ),
-            if (_showAttribution)
+              const SizedBox(height: 16),
+              _SectionHeader('Pin & button'),
               SwitchListTile(
-                title: const Text('Custom attribution label'),
+                title: const Text('Custom pin builder'),
                 subtitle: const Text(
-                  'Uses a custom text and left-side alignment instead of '
-                  'the default OSM text',
+                  'Replaces the default MapPin with a coloured star icon',
                 ),
-                value: _useCustomAttribution,
-                onChanged: (v) => setState(() => _useCustomAttribution = v),
+                value: _useCustomPin,
+                onChanged: (v) => setState(() => _useCustomPin = v),
+              ),
+              SwitchListTile(
+                title: const Text('Custom confirmButtonStyle'),
+                subtitle: const Text(
+                  'Overrides the Confirm Address button with a teal style',
+                ),
+                value: _useCustomButtonStyle,
+                onChanged: (v) => setState(() => _useCustomButtonStyle = v),
+              ),
+              const SizedBox(height: 16),
+              _SectionHeader('Attribution'),
+              SwitchListTile(
+                title: const Text('Show attribution'),
+                subtitle: const Text(
+                  'Disable to suppress the OSM attribution widget '
+                  '(not recommended — violates OSM tile policy)',
+                ),
+                value: _showAttribution,
+                onChanged: (v) => setState(() => _showAttribution = v),
+              ),
+              if (_showAttribution)
+                SwitchListTile(
+                  title: const Text('Custom attribution label'),
+                  subtitle: const Text(
+                    'Uses a custom text and left-side alignment instead of '
+                    'the default OSM text',
+                  ),
+                  value: _useCustomAttribution,
+                  onChanged: (v) => setState(() => _useCustomAttribution = v),
+                ),
+
+              const SizedBox(height: 24),
+
+              // ── Launch button ────────────────────────────────────────────
+              FilledButton.icon(
+                onPressed: _openPicker,
+                icon: const Icon(Icons.location_on),
+                label: const Text('Pick an Address'),
               ),
 
-            const SizedBox(height: 24),
+              const SizedBox(height: 24),
 
-            // ── Launch button ────────────────────────────────────────────
-            FilledButton.icon(
-              onPressed: _openPicker,
-              icon: const Icon(Icons.location_on),
-              label: const Text('Pick an Address'),
-            ),
-
-            const SizedBox(height: 24),
-
-            // ── Result card ──────────────────────────────────────────────
-            if (_selectedAddress != null) ...[
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Selected Address',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 12),
-                      _row('Display', _selectedAddress!.address.displayName),
-                      _row('Street', _selectedAddress!.address.street),
-                      _row('House #', _selectedAddress!.address.houseNumber),
-                      _row('City', _selectedAddress!.address.city),
-                      _row('State', _selectedAddress!.address.state),
-                      _row('Postal', _selectedAddress!.address.postalCode),
-                      _row('Country', _selectedAddress!.address.country),
-                      _row('Code', _selectedAddress!.address.countryCode),
-                      _row(
-                        'Lat',
-                        '${_selectedAddress!.address.latLng.latitude}',
-                      ),
-                      _row(
-                        'Lng',
-                        '${_selectedAddress!.address.latLng.longitude}',
-                      ),
-                      if (_selectedAddress!.details != null) ...[
-                        const Divider(),
-                        _row('Apt', _selectedAddress!.details!.apt),
-                        _row('Floor', _selectedAddress!.details!.floor),
-                        _row('Gate', _selectedAddress!.details!['gate']),
-                        _row('Notes', _selectedAddress!.details!.deliveryNotes),
+              // ── Result card ──────────────────────────────────────────────
+              if (_selectedAddress != null) ...[
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Selected Address',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 12),
+                        _row('Display', _selectedAddress!.address.displayName),
+                        _row('Street', _selectedAddress!.address.street),
+                        _row('House #', _selectedAddress!.address.houseNumber),
+                        _row('City', _selectedAddress!.address.city),
+                        _row('State', _selectedAddress!.address.state),
+                        _row('Postal', _selectedAddress!.address.postalCode),
+                        _row('Country', _selectedAddress!.address.country),
+                        _row('Code', _selectedAddress!.address.countryCode),
+                        _row(
+                          'Lat',
+                          '${_selectedAddress!.address.latLng.latitude}',
+                        ),
+                        _row(
+                          'Lng',
+                          '${_selectedAddress!.address.latLng.longitude}',
+                        ),
+                        if (_selectedAddress!.details != null) ...[
+                          const Divider(),
+                          _row('Apt', _selectedAddress!.details!.apt),
+                          _row('Floor', _selectedAddress!.details!.floor),
+                          _row('Gate', _selectedAddress!.details!['gate']),
+                          _row(
+                            'Notes',
+                            _selectedAddress!.details!.deliveryNotes,
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
                 ),
-              ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
@@ -240,10 +242,10 @@ class _HomePageState extends State<HomePage> {
         mapDarkMode: _mapDarkMode,
         pinBuilder: _useCustomPin
             ? (context) => Icon(
-                  Icons.star,
-                  size: 40,
-                  color: Theme.of(context).colorScheme.tertiary,
-                )
+                Icons.star,
+                size: 40,
+                color: Theme.of(context).colorScheme.tertiary,
+              )
             : null,
         confirmButtonStyle: _useCustomButtonStyle
             ? FilledButton.styleFrom(
@@ -265,6 +267,20 @@ class _HomePageState extends State<HomePage> {
             icon: Icons.pin_outlined,
             keyboardType: TextInputType.number,
             quickFills: ['1234', '0000', 'Call me'],
+          ),
+          // Pre-filled from the confirmed address. Users can still edit.
+          AddressFieldSpec(
+            key: 'street',
+            label: 'Street',
+            hint: 'e.g. Main Street',
+            icon: Icons.signpost_outlined,
+            prefillFrom: AddressAttribute.street,
+          ),
+          AddressFieldSpec(
+            key: 'city',
+            label: 'City',
+            icon: Icons.location_city_outlined,
+            prefillFrom: AddressAttribute.city,
           ),
           AddressFieldSpec.postalCode,
           AddressFieldSpec.deliveryNotes,
@@ -306,10 +322,7 @@ class _SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
-      child: Text(
-        text,
-        style: Theme.of(context).textTheme.labelLarge,
-      ),
+      child: Text(text, style: Theme.of(context).textTheme.labelLarge),
     );
   }
 }
