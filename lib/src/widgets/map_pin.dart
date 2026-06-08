@@ -14,12 +14,12 @@ class MapPin extends StatelessWidget {
   /// The size of the pin icon.
   final double size;
 
-  /// Pin color. Defaults to the theme's primary color.
+  /// Pin color. Defaults to black.
   final Color? color;
 
   @override
   Widget build(BuildContext context) {
-    final pinColor = color ?? Theme.of(context).colorScheme.primary;
+    final pinColor = color ?? Colors.black;
 
     return Icon(
       Icons.location_pin,

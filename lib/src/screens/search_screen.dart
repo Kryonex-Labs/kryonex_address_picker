@@ -3,6 +3,8 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:forui/forui.dart';
 
+import 'package:latlong2/latlong.dart';
+
 import '../hooks/use_current_location.dart';
 import '../hooks/use_photon_search.dart';
 import '../hooks/use_recent_addresses.dart';
@@ -35,7 +37,7 @@ class SearchScreen extends HookWidget {
   final VoidCallback onPickOnMap;
 
   /// Called when the user taps "Use current location" with the resolved coordinates.
-  final ValueChanged<StructuredAddress> onCurrentLocation;
+  final ValueChanged<LatLng> onCurrentLocation;
 
   @override
   Widget build(BuildContext context) {
@@ -219,6 +221,8 @@ class SearchScreen extends HookWidget {
                           SnackBar(content: Text(locationState.error!)),
                         );
                       }
+                    } else if (locationState.location != null) {
+                      onCurrentLocation(locationState.location!);
                     }
                   },
             child: Container(

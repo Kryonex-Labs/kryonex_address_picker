@@ -33,6 +33,18 @@ Geocoding · map confirmation · structured output — in one call.
 
 ---
 
+## ⟶ Demo
+
+<div align="center">
+
+<video src="https://github.com/Kryonex-Labs/kryonex_address_picker/raw/develop/assets/example.mp4" controls width="320"></video>
+
+_Search · confirm on map · capture details — all in one flow._
+
+</div>
+
+---
+
 ## ⟶ Why
 
 Address entry is usually a mess of free-text fields and bad data. This is the opposite:

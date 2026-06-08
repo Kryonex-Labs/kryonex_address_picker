@@ -7,6 +7,7 @@ import 'package:kryonex_address_picker/src/screens/search_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:geolocator/geolocator.dart' show LocationPermission;
+import 'package:latlong2/latlong.dart' show LatLng;
 
 import '../_support/fake_geolocator.dart';
 import '../_support/fixtures.dart';
@@ -17,13 +18,14 @@ const _storageKey = 'kryonex_recent_addresses';
 Widget buildSearchScreen({
   required ValueChanged<StructuredAddress> onAddressSelected,
   required VoidCallback onPickOnMap,
+  ValueChanged<LatLng>? onCurrentLocation,
 }) {
   return MaterialApp(
     home: SearchScreen(
       config: const AddressPickerConfig(localeAwareSearch: false),
       onAddressSelected: onAddressSelected,
       onPickOnMap: onPickOnMap,
-      onCurrentLocation: onAddressSelected,
+      onCurrentLocation: onCurrentLocation ?? (_) {},
     ),
   );
 }

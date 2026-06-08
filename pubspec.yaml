@@ -1,6 +1,6 @@
 name: kryonex_address_picker
 description: An opinionated, search-first address picker for Flutter with Nominatim geocoding, map confirmation, and structured address output. Built with ForUI components and flutter_map.
-version: 0.0.3
+version: 0.0.4
 homepage: https://github.com/Kryonex-Labs/kryonex_address_picker
 documentation: https://pub.dev/documentation/kryonex_address_picker/latest/
 

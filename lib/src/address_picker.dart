@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:latlong2/latlong.dart';
 
 import 'models/address_details.dart';
 import 'models/selected_address.dart';
@@ -70,6 +71,19 @@ class _AddressPickerFlowState extends State<_AddressPickerFlow> {
     );
   }
 
+  void _onCurrentLocationLatLng(LatLng latLng) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => MapConfirmScreen(
+          config: widget.config,
+          initialAddress: null,
+          initialLatLng: latLng,
+          onConfirm: _onMapConfirmed,
+        ),
+      ),
+    );
+  }
+
   Future<void> _onMapConfirmed(StructuredAddress address) async {
     if (!widget.config.showDetailScreen) {
       // Skip detail step — return immediately.
@@ -113,7 +127,7 @@ class _AddressPickerFlowState extends State<_AddressPickerFlow> {
       config: widget.config,
       onAddressSelected: _onAddressSelected,
       onPickOnMap: _onPickOnMap,
-      onCurrentLocation: _onAddressSelected,
+      onCurrentLocation: _onCurrentLocationLatLng,
     );
   }
 }

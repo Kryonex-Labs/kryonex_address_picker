@@ -1,5 +1,31 @@
 # Changelog
 
+## 0.0.4
+
+### Added
+- "Locate Me" button on the map confirm screen — fetches the current location,
+  drops the pin, and recenters the map (with loading + error states).
+- `MapConfirmScreen.initialLatLng` — lets the picker open the map directly at a
+  given coordinate (used by the new current-location flow).
+- Demo section in the README with an embedded preview video.
+
+### Changed
+- **Breaking:** `SearchScreen.onCurrentLocation` now receives a `LatLng` instead
+  of a `StructuredAddress`. Tapping "Use current location" from search now opens
+  the map confirm step at the resolved coordinates rather than returning a
+  result immediately.
+- Disabled flutter_map 8.x's default on-disk tile cache so the package works
+  without consumers wiring up `path_provider` (avoids `MissingPluginException`
+  for `getApplicationCacheDirectory`).
+- Map confirm screen body is now wrapped in `SafeArea`.
+- Confirm button restyled (filled black button with rounded corners, honors
+  `sheetAccentColor`).
+- `MapPin` default color is now black instead of the theme's primary color.
+- Example app home page is now scrollable (`SingleChildScrollView`).
+
+### Fixed
+- Removed stale `jni` entry from generated Linux/Windows plugin lists.
+
 ## 0.0.3
 
 ### Changed
