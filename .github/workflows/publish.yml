@@ -3,10 +3,11 @@ name: Publish to pub.dev
 on:
   push:
     tags:
-      - 'v_[0-9]+.[0-9]+.[0-9]+*'
+      - 'v_[0-9]+.[0-9]+.[0-9]+'
 
 jobs:
   publish:
+    environment: pub.dev
     permissions:
       id-token: write
       contents: read
@@ -16,6 +17,8 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
+          cache: true
+      - uses: dart-lang/setup-dart@v1
       - run: flutter pub get
       - run: flutter analyze
       - run: flutter test
