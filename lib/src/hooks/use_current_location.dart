@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
@@ -39,6 +40,8 @@ CurrentLocationState useCurrentLocation() {
   Future<void> fetch() async {
     isLoading.value = true;
     error.value = null;
+    
+    debugPrint('Fetching current location...');
 
     try {
       // Check if location services are enabled.
@@ -47,6 +50,7 @@ CurrentLocationState useCurrentLocation() {
         error.value = 'Location services are disabled. '
             'Please enable them in Settings.';
         isLoading.value = false;
+        debugPrint('Location services disabled.');
         return;
       }
 
@@ -54,9 +58,11 @@ CurrentLocationState useCurrentLocation() {
       var permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
+        debugPrint('Location permission requested: $permission');
         if (permission == LocationPermission.denied) {
           error.value = 'Location permission denied.';
           isLoading.value = false;
+          debugPrint('Location permission denied.');
           return;
         }
       }
@@ -65,6 +71,7 @@ CurrentLocationState useCurrentLocation() {
         error.value = 'Location permission permanently denied. '
             'Please enable it in Settings.';
         isLoading.value = false;
+        debugPrint('Location permission permanently denied.');
         return;
       }
 
@@ -78,9 +85,11 @@ CurrentLocationState useCurrentLocation() {
 
       location.value = LatLng(position.latitude, position.longitude);
       isLoading.value = false;
+      debugPrint('Current location fetched: ${location.value}');
     } catch (e) {
       error.value = 'Failed to get current location.';
       isLoading.value = false;
+      debugPrint('Error fetching location: $e');
     }
   }
 
