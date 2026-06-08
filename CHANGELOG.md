@@ -8,6 +8,21 @@
 - `MapConfirmScreen.initialLatLng` — lets the picker open the map directly at a
   given coordinate (used by the new current-location flow).
 - Demo section in the README with an embedded preview video.
+- `AddressPickerConfig.mapDarkMode` (`MapDarkMode.auto` / `.light` / `.dark`) —
+  applies a `ColorFilter` invert+hue-rotate on the tile layer for dark-map
+  emulation; `auto` follows `Theme.of(context).brightness`.
+- `AddressPickerConfig.pinBuilder` — `WidgetBuilder?` to swap in any custom
+  widget as the map marker without subclassing the screen.
+- `AddressPickerConfig.confirmButtonStyle` — `ButtonStyle?` for full control
+  over the "Confirm Address" button style.
+- `AddressPickerConfig.attributionStyle` — declarative `AddressPickerAttribution`
+  configuration (text, URI, background color, text style, alignment). Renders
+  `© OpenStreetMap contributors` by default to comply with OSM tile usage
+  policy. Set to `null` to suppress attribution entirely.
+- `MapAttributionAlignment` enum (`bottomLeft` / `bottomRight`) for positioning
+  the attribution chip.
+- `AddressPickerAttribution.osm` — static const for the canonical OSM
+  attribution, ready to use or extend.
 
 ### Changed
 - **Breaking:** `SearchScreen.onCurrentLocation` now receives a `LatLng` instead
@@ -18,10 +33,13 @@
   without consumers wiring up `path_provider` (avoids `MissingPluginException`
   for `getApplicationCacheDirectory`).
 - Map confirm screen body is now wrapped in `SafeArea`.
-- Confirm button restyled (filled black button with rounded corners, honors
-  `sheetAccentColor`).
-- `MapPin` default color is now black instead of the theme's primary color.
-- Example app home page is now scrollable (`SingleChildScrollView`).
+- Confirm button default style now derives from `sheetAccentColor ??
+  colorScheme.primary` (previously hardcoded black). Fully overridable via the
+  new `confirmButtonStyle` field.
+- `MapPin` default color now resolves from `colorScheme.primary` instead of
+  hardcoded black; explicit `color` parameter still takes priority.
+- Example app home page is now scrollable (`SingleChildScrollView`) and includes
+  interactive knobs for all four new configuration fields.
 
 ### Fixed
 - Removed stale `jni` entry from generated Linux/Windows plugin lists.

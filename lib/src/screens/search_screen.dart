@@ -214,15 +214,15 @@ class SearchScreen extends HookWidget {
             onTap: locationState.isLoading
                 ? null
                 : () async {
-                    await locationState.fetch();
-                    if (locationState.error != null) {
+                    final result = await locationState.fetch();
+                    if (result.error != null) {
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(locationState.error!)),
+                          SnackBar(content: Text(result.error!)),
                         );
                       }
-                    } else if (locationState.location != null) {
-                      onCurrentLocation(locationState.location!);
+                    } else if (result.location != null) {
+                      onCurrentLocation(result.location!);
                     }
                   },
             child: Container(
@@ -303,17 +303,9 @@ class SearchScreen extends HookWidget {
         DecoratedBox(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14),
-            boxShadow: [
-              BoxShadow(
-                color: (config.sheetAccentColor ?? colors.primary)
-                    .withValues(alpha: 0.35),
-                blurRadius: 24,
-                spreadRadius: -4,
-                offset: const Offset(0, 8),
-              ),
-            ],
           ),
           child: FButton(
+            variant: .outline,
             onPress: onPickOnMap,
             suffix: const Icon(Icons.map_outlined, size: 18),
             child: const Text('Pick on Map'),

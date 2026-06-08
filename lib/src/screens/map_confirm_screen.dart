@@ -63,6 +63,24 @@ class MapConfirmScreen extends HookWidget {
       materialTheme: config.materialTheme,
     );
 
+    final colorScheme = Theme.of(context).colorScheme;
+    final brightness = Theme.of(context).brightness;
+
+    // Resolve whether dark-tile filter should be applied.
+    final useDarkTiles = switch (config.mapDarkMode) {
+      MapDarkMode.auto => brightness == Brightness.dark,
+      MapDarkMode.light => false,
+      MapDarkMode.dark => true,
+    };
+
+    // Invert + hue-rotate matrix for dark-tile emulation.
+    const darkTileFilter = ColorFilter.matrix(<double>[
+      -1, 0, 0, 0, 255, //
+      0, -1, 0, 0, 255, //
+      0, 0, -1, 0, 255, //
+      0, 0, 0, 1, 0,
+    ]);
+
     return FTheme(
       data: theme,
       child: Scaffold(
@@ -106,6 +124,12 @@ class MapConfirmScreen extends HookWidget {
                     tileProvider: NetworkTileProvider(
                       cachingProvider: const DisabledMapCachingProvider(),
                     ),
+                    tileBuilder: useDarkTiles
+                        ? (context, tile, _) => ColorFiltered(
+                            colorFilter: darkTileFilter,
+                            child: tile,
+                          )
+                        : null,
                   ),
                   if (selectedLatLng.value != null)
                     MarkerLayer(
@@ -115,10 +139,16 @@ class MapConfirmScreen extends HookWidget {
                           width: 40,
                           height: 40,
                           alignment: Alignment.topCenter,
-                          child: const MapPin(),
+                          child: config.pinBuilder != null
+                              ? config.pinBuilder!(context)
+                              : MapPin(
+                                  color: colorScheme.primary,
+                                ),
                         ),
                       ],
                     ),
+                  if (config.attributionStyle != null)
+                    _buildAttribution(config.attributionStyle!),
                 ],
               ),
 
@@ -131,17 +161,17 @@ class MapConfirmScreen extends HookWidget {
                   onPressed: locationState.isLoading
                       ? null
                       : () async {
-                          await locationState.fetch();
-                          if (locationState.error != null) {
+                          final result = await locationState.fetch();
+                          if (result.error != null) {
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(locationState.error!)),
+                                SnackBar(content: Text(result.error!)),
                               );
                             }
-                          } else if (locationState.location != null) {
-                            selectedLatLng.value = locationState.location!;
+                          } else if (result.location != null) {
+                            selectedLatLng.value = result.location!;
                             mapController.move(
-                              locationState.location!,
+                              result.location!,
                               config.mapZoom,
                             );
                           }
@@ -172,16 +202,20 @@ class MapConfirmScreen extends HookWidget {
                     SizedBox(
                       width: double.infinity,
                       child: FilledButton(
-                        style: FilledButton.styleFrom(
-                          backgroundColor:
-                              config.sheetAccentColor ?? Colors.black,
-                          foregroundColor: Colors.white,
-                          disabledBackgroundColor: Colors.black26,
-                          minimumSize: const Size.fromHeight(48),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
+                        style: config.confirmButtonStyle ??
+                            FilledButton.styleFrom(
+                              backgroundColor:
+                                  config.sheetAccentColor ??
+                                  colorScheme.primary,
+                              foregroundColor:
+                                  colorScheme.onPrimary,
+                              disabledBackgroundColor:
+                                  colorScheme.primary.withValues(alpha: 0.38),
+                              minimumSize: const Size.fromHeight(48),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
                         onPressed:
                             displayAddress != null && !reverseState.isLoading
                             ? () => onConfirm(displayAddress)
@@ -196,6 +230,22 @@ class MapConfirmScreen extends HookWidget {
           ),
         ),
       ),
+    );
+  }
+
+  /// Builds a [SimpleAttributionWidget] from [AddressPickerAttribution].
+  Widget _buildAttribution(AddressPickerAttribution attribution) {
+    final alignment = attribution.alignment == MapAttributionAlignment.bottomRight
+        ? Alignment.bottomRight
+        : Alignment.bottomLeft;
+
+    return SimpleAttributionWidget(
+      source: Text(
+        attribution.text,
+        style: attribution.textStyle,
+      ),
+      alignment: alignment,
+      backgroundColor: attribution.backgroundColor ?? Colors.white70,
     );
   }
 }

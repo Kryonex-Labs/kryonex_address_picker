@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:forui/forui.dart';
 import 'package:kryonex_address_picker/kryonex_address_picker.dart';
 import 'package:kryonex_address_picker/src/screens/map_confirm_screen.dart';
+import 'package:kryonex_address_picker/src/widgets/map_pin.dart';
 
 import '../_support/fixtures.dart';
 
@@ -10,10 +11,13 @@ import '../_support/fixtures.dart';
 Widget buildMapScreen({
   required StructuredAddress? initialAddress,
   required ValueChanged<StructuredAddress> onConfirm,
+  AddressPickerConfig config = const AddressPickerConfig(),
+  ThemeData? theme,
 }) {
   return MaterialApp(
+    theme: theme,
     home: MapConfirmScreen(
-      config: const AddressPickerConfig(),
+      config: config,
       initialAddress: initialAddress,
       onConfirm: onConfirm,
     ),
@@ -90,11 +94,138 @@ void main() {
       );
       await tester.pump();
 
-      // Check that at least one FButton has null onPress (the Confirm button).
+      // Check that the Confirm FilledButton has null onPressed.
       final disabledButtons = find.byWidgetPredicate(
-        (w) => w is FButton && w.onPress == null,
+        (w) => w is FilledButton && w.onPressed == null,
       );
       expect(disabledButtons, findsWidgets);
+      await drainForUiTimers(tester);
+    });
+  });
+
+  group('MapConfirmScreen — new theming options', () {
+    testWidgets('pinBuilder override is rendered instead of default MapPin',
+        (tester) async {
+      const pinKey = Key('custom-pin');
+      await tester.pumpWidget(
+        buildMapScreen(
+          initialAddress: buildAddress(),
+          onConfirm: (_) {},
+          config: AddressPickerConfig(
+            pinBuilder: (_) => const SizedBox(key: pinKey, width: 40, height: 40),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.byKey(pinKey), findsOneWidget);
+      expect(find.byType(MapPin), findsNothing);
+      await drainForUiTimers(tester);
+    });
+
+    testWidgets('confirmButtonStyle is applied to Confirm button',
+        (tester) async {
+      final customStyle = FilledButton.styleFrom(
+        backgroundColor: const Color(0xFFFF5733),
+      );
+      await tester.pumpWidget(
+        buildMapScreen(
+          initialAddress: buildAddress(),
+          onConfirm: (_) {},
+          config: AddressPickerConfig(confirmButtonStyle: customStyle),
+        ),
+      );
+      await tester.pump();
+
+      final button = tester.widget<FilledButton>(
+        find.widgetWithText(FilledButton, 'Confirm Address'),
+      );
+      expect(button.style, customStyle);
+      await drainForUiTimers(tester);
+    });
+
+    testWidgets('mapDarkMode.dark wraps tiles in a ColorFiltered widget',
+        (tester) async {
+      await tester.pumpWidget(
+        buildMapScreen(
+          initialAddress: buildAddress(),
+          onConfirm: (_) {},
+          config: const AddressPickerConfig(mapDarkMode: MapDarkMode.dark),
+        ),
+      );
+      await tester.pump();
+
+      // The tileBuilder wraps each tile in ColorFiltered.
+      expect(find.byType(ColorFiltered), findsWidgets);
+      await drainForUiTimers(tester);
+    });
+
+    testWidgets('mapDarkMode.light does not apply ColorFiltered on light theme',
+        (tester) async {
+      await tester.pumpWidget(
+        buildMapScreen(
+          initialAddress: buildAddress(),
+          onConfirm: (_) {},
+          config: const AddressPickerConfig(mapDarkMode: MapDarkMode.light),
+          theme: ThemeData(brightness: Brightness.light),
+        ),
+      );
+      await tester.pump();
+
+      // No ColorFiltered overlay should be present.
+      expect(find.byType(ColorFiltered), findsNothing);
+      await drainForUiTimers(tester);
+    });
+
+    testWidgets('attribution text is shown by default (OSM attribution)',
+        (tester) async {
+      await tester.pumpWidget(
+        buildMapScreen(
+          initialAddress: buildAddress(),
+          onConfirm: (_) {},
+        ),
+      );
+      await tester.pump();
+
+      expect(
+        find.text('© OpenStreetMap contributors'),
+        findsOneWidget,
+      );
+      await drainForUiTimers(tester);
+    });
+
+    testWidgets('attributionStyle: null suppresses the attribution widget',
+        (tester) async {
+      await tester.pumpWidget(
+        buildMapScreen(
+          initialAddress: buildAddress(),
+          onConfirm: (_) {},
+          config: const AddressPickerConfig(attributionStyle: null),
+        ),
+      );
+      await tester.pump();
+
+      expect(
+        find.byType(SimpleAttributionWidget),
+        findsNothing,
+      );
+      await drainForUiTimers(tester);
+    });
+
+    testWidgets('custom attribution text is rendered', (tester) async {
+      const customAttribution = AddressPickerAttribution(
+        text: 'Custom Map Data',
+      );
+      await tester.pumpWidget(
+        buildMapScreen(
+          initialAddress: buildAddress(),
+          onConfirm: (_) {},
+          config: const AddressPickerConfig(attributionStyle: customAttribution),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.text('Custom Map Data'), findsOneWidget);
       await drainForUiTimers(tester);
     });
   });
