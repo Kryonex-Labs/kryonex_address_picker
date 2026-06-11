@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 
 import '../models/structured_address.dart';
@@ -42,7 +43,8 @@ RecentAddressesState useRecentAddresses({int maxAddresses = 5}) {
     () async {
       try {
         addresses.value = await service.load();
-      } catch (_) {
+      } catch (e, trace) {
+        debugPrint('[AddressPicker] useRecentAddresses.load error: $e\n$trace');
         addresses.value = [];
       } finally {
         isLoading.value = false;
@@ -52,13 +54,21 @@ RecentAddressesState useRecentAddresses({int maxAddresses = 5}) {
   }, []);
 
   Future<void> save(StructuredAddress address) async {
-    await service.save(address);
-    addresses.value = await service.load();
+    try {
+      await service.save(address);
+      addresses.value = await service.load();
+    } catch (e, trace) {
+      debugPrint('[AddressPicker] useRecentAddresses.save error: $e\n$trace');
+    }
   }
 
   Future<void> clear() async {
-    await service.clear();
-    addresses.value = [];
+    try {
+      await service.clear();
+      addresses.value = [];
+    } catch (e, trace) {
+      debugPrint('[AddressPicker] useRecentAddresses.clear error: $e\n$trace');
+    }
   }
 
   return RecentAddressesState(

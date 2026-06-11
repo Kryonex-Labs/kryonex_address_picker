@@ -45,7 +45,17 @@ class MapConfirmScreen extends HookWidget {
     final selectedLatLng = useState<LatLng?>(
       initialAddress?.latLng ?? initialLatLng,
     );
-    final reverseState = useReverseGeocode(selectedLatLng.value);
+    final geocodingService =
+        useMemoized(() => config.createGeocodingService(), [config]);
+
+    // Dispose service on unmount (skip if caller-provided via config.geocodingService).
+    useEffect(() {
+      if (config.geocodingService != null) return null;
+      return geocodingService.dispose;
+    }, [geocodingService]);
+
+    final reverseState =
+        useReverseGeocode(selectedLatLng.value, service: geocodingService);
     final locationState = useCurrentLocation();
 
     // Use the reverse-geocoded address when available, fall back to initial.
@@ -198,6 +208,17 @@ class MapConfirmScreen extends HookWidget {
                       address: displayAddress,
                       isLoading: reverseState.isLoading,
                     ),
+                    if (reverseState.error != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Text(
+                          reverseState.error!,
+                          style: TextStyle(
+                            color: colorScheme.error,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
                     const SizedBox(height: 12),
                     SizedBox(
                       width: double.infinity,

@@ -50,6 +50,19 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   SelectedAddress? _selectedAddress;
 
+  final _apiKeyController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _apiKeyController.dispose();
+    super.dispose();
+  }
+
   // ─── Demo knobs ───────────────────────────────────────────────────────────
 
   /// Which dark-mode strategy to use for map tiles.
@@ -94,6 +107,28 @@ class _HomePageState extends State<HomePage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // ── Config knobs ──────────────────────────────────────────────
+              _SectionHeader('Geocoding'),
+              TextField(
+                controller: _apiKeyController,
+                decoration: const InputDecoration(
+                  labelText: 'Google Maps API Key',
+                  hintText: 'Leave empty to use Photon (free)',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.key),
+                ),
+                onChanged: (_) => setState(() {}),
+              ),
+              if (_apiKeyController.text.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    'Google Geocoding → Photon fallback',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ),
+              const SizedBox(height: 16),
               _SectionHeader('Map dark mode'),
               SegmentedButton<MapDarkMode>(
                 segments: const [
@@ -233,6 +268,9 @@ class _HomePageState extends State<HomePage> {
     final result = await showAddressPicker(
       context,
       config: AddressPickerConfig(
+        googleMapsApiKey: _apiKeyController.text.isNotEmpty
+            ? _apiKeyController.text
+            : null,
         searchHint: 'Where to?',
         maxRecentAddresses: 5,
         showDetailScreen: true,

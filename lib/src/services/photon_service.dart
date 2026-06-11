@@ -1,9 +1,12 @@
 import 'dart:convert';
 
+import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/geocoding_result.dart';
+import '../models/place_prediction.dart';
 import '../models/structured_address.dart';
+import 'geocoding_service.dart';
 
 /// Service for forward and reverse geocoding via the Photon API.
 ///
@@ -12,7 +15,7 @@ import '../models/structured_address.dart';
 ///
 /// Usage policy: no hard rate limit, but please avoid hammering the public
 /// instance. The caller is responsible for debouncing search queries.
-class PhotonService {
+class PhotonService implements GeocodingService {
   PhotonService({
     http.Client? client,
     this.userAgent = 'kryonex_address_picker/0.1.0',
@@ -26,9 +29,9 @@ class PhotonService {
   static const _baseUrl = 'https://photon.komoot.io';
 
   Map<String, String> get _headers => {
-        'User-Agent': userAgent,
-        'Accept': 'application/json',
-      };
+    'User-Agent': userAgent,
+    'Accept': 'application/json',
+  };
 
   /// Forward geocode: search for addresses matching [query].
   ///
@@ -38,12 +41,14 @@ class PhotonService {
   /// [limit] controls the maximum number of results (default: 5).
   ///
   /// Returns an empty list on network errors or empty results.
+  @override
   Future<List<GeocodingResult>> search(
     String query, {
     List<String>? countryCodes,
     String? lang,
     int limit = 5,
   }) async {
+    debugPrint('[AddressPicker] Photon.search: "$query"');
     if (query.trim().isEmpty) return [];
 
     // Photon requires repeated `countrycode` params with uppercase values.
@@ -57,8 +62,9 @@ class PhotonService {
     }
 
     if (countryCodes != null && countryCodes.isNotEmpty) {
-      queryParams['countrycode'] =
-          countryCodes.map((c) => c.toUpperCase()).toList();
+      queryParams['countrycode'] = countryCodes
+          .map((c) => c.toUpperCase())
+          .toList();
     }
 
     final uri = Uri(
@@ -77,10 +83,12 @@ class PhotonService {
           json.decode(response.body) as Map<String, dynamic>;
       final features = data['features'] as List<dynamic>? ?? [];
       return features
-          .map((e) =>
-              GeocodingResult.fromPhotonFeature(e as Map<String, dynamic>))
+          .map(
+            (e) => GeocodingResult.fromPhotonFeature(e as Map<String, dynamic>),
+          )
           .toList();
-    } catch (_) {
+    } catch (e, trace) {
+      debugPrint('[AddressPicker] Photon.search error: $e\n$trace');
       return [];
     }
   }
@@ -88,14 +96,12 @@ class PhotonService {
   /// Reverse geocode: resolve a lat/lng coordinate to an address.
   ///
   /// Returns `null` if the coordinate cannot be resolved.
+  @override
   Future<StructuredAddress?> reverse(double lat, double lon) async {
-    final uri = Uri.parse('$_baseUrl/reverse').replace(
-      queryParameters: {
-        'lat': '$lat',
-        'lon': '$lon',
-        'limit': '1',
-      },
-    );
+    debugPrint('[AddressPicker] Photon.reverse: ($lat, $lon)');
+    final uri = Uri.parse(
+      '$_baseUrl/reverse',
+    ).replace(queryParameters: {'lat': '$lat', 'lon': '$lon', 'limit': '1'});
 
     try {
       final response = await _client.get(uri, headers: _headers);
@@ -111,13 +117,29 @@ class PhotonService {
       return GeocodingResult.fromPhotonFeature(
         features.first as Map<String, dynamic>,
       ).toStructuredAddress();
-    } catch (_) {
+    } catch (e, trace) {
+      debugPrint('[AddressPicker] Photon.reverse error: $e\n$trace');
       return null;
     }
   }
 
   /// Disposes the HTTP client.
+  @override
   void dispose() {
     _client.close();
   }
+
+  @override
+  bool get supportsAutocomplete => false;
+
+  @override
+  Future<List<PlacePrediction>> autocomplete(
+    String input, {
+    String? lang,
+    int limit = 5,
+  }) async =>
+      const [];
+
+  @override
+  Future<GeocodingResult?> placeDetails(String placeId) async => null;
 }

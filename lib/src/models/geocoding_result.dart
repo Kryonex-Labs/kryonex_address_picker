@@ -17,8 +17,11 @@ class GeocodingResult {
     this.importance,
   });
 
-  /// OSM place identifier (sourced from `osm_id` in Photon responses).
-  final int placeId;
+  /// Provider-specific place identifier.
+  ///
+  /// For Photon this is the stringified `osm_id`; for Google it is the
+  /// opaque `place_id` string returned by the Geocoding API.
+  final String placeId;
 
   /// Full human-readable address string.
   final String displayName;
@@ -100,7 +103,7 @@ class GeocodingResult {
     };
 
     return GeocodingResult(
-      placeId: (props['osm_id'] as num?)?.toInt() ?? 0,
+      placeId: (props['osm_id'] as num?)?.toInt().toString() ?? '0',
       displayName: displayName,
       lat: lat,
       lon: lon,
@@ -110,6 +113,141 @@ class GeocodingResult {
     );
   }
 
+  /// Parses a single result object from a Google Geocoding API response.
+  ///
+  /// Google returns `{ results: [ ... ] }`; pass each element to this factory.
+  /// Address-component types are mapped to Nominatim-compatible keys so that
+  /// [toStructuredAddress] works without modification.
+  factory GeocodingResult.fromGoogleResult(Map<String, dynamic> result) {
+    final geometry = result['geometry'] as Map<String, dynamic>;
+    final location = geometry['location'] as Map<String, dynamic>;
+    final lat = (location['lat'] as num).toDouble();
+    final lng = (location['lng'] as num).toDouble();
+
+    final formattedAddress =
+        (result['formatted_address'] as String?) ?? 'Unknown location';
+    final placeId = (result['place_id'] as String?) ?? '';
+
+    final components =
+        (result['address_components'] as List<dynamic>?) ?? <dynamic>[];
+
+    // Map Google address-component types → Nominatim-compatible keys.
+    const typeMapping = <String, String>{
+      'street_number': 'house_number',
+      'route': 'road',
+      'locality': 'city',
+      'sublocality': 'town',
+      'administrative_area_level_1': 'state',
+      'postal_code': 'postcode',
+      'country': 'country',
+    };
+
+    final addressParts = <String, dynamic>{};
+    String? countryCode;
+
+    for (final comp in components) {
+      final map = comp as Map<String, dynamic>;
+      final types = (map['types'] as List<dynamic>).cast<String>();
+      final longName = map['long_name'] as String?;
+      final shortName = map['short_name'] as String?;
+
+      for (final type in types) {
+        final nominatimKey = typeMapping[type];
+        if (nominatimKey != null && longName != null) {
+          addressParts[nominatimKey] = longName;
+        }
+        if (type == 'country' && shortName != null) {
+          countryCode = shortName.toLowerCase();
+        }
+      }
+    }
+    if (countryCode != null) {
+      addressParts['country_code'] = countryCode;
+    }
+
+    return GeocodingResult(
+      placeId: placeId,
+      displayName: formattedAddress,
+      lat: lat,
+      lon: lng,
+      addressParts: addressParts,
+      type: null,
+      importance: null,
+    );
+  }
+
   @override
   String toString() => 'GeocodingResult($displayName)';
+
+  /// Parses a single place object from a Places API (New) place details
+  /// response.
+  ///
+  /// The response shape differs from [fromGoogleResult] in three ways:
+  /// - `location.latitude` / `location.longitude` (not `geometry.location`)
+  /// - `id` (not `place_id`)
+  /// - `addressComponents[{longText, shortText, types}]`
+  ///   (not `address_components[{long_name, short_name, types}]`)
+  factory GeocodingResult.fromGooglePlaceDetails(
+    Map<String, dynamic> place,
+  ) {
+    final locationMap = place['location'] as Map<String, dynamic>;
+    final lat = (locationMap['latitude'] as num).toDouble();
+    final lng = (locationMap['longitude'] as num).toDouble();
+
+    final placeId = (place['id'] as String?) ?? '';
+    final formattedAddress =
+        (place['formattedAddress'] as String?) ??
+        ((place['displayName'] as Map<String, dynamic>?)?['text'] as String?) ??
+        'Unknown location';
+
+    final components =
+        (place['addressComponents'] as List<dynamic>?) ?? <dynamic>[];
+
+    // Map Places API (New) address-component types → Nominatim-compatible keys.
+    // The type identifiers are identical to the Geocoding API; only the field
+    // names on the component object differ (longText vs long_name).
+    const typeMapping = <String, String>{
+      'street_number': 'house_number',
+      'route': 'road',
+      'locality': 'city',
+      'sublocality': 'town',
+      'administrative_area_level_1': 'state',
+      'postal_code': 'postcode',
+      'country': 'country',
+    };
+
+    final addressParts = <String, dynamic>{};
+    String? countryCode;
+
+    for (final comp in components) {
+      final map = comp as Map<String, dynamic>;
+      final types =
+          (map['types'] as List<dynamic>?)?.cast<String>() ?? <String>[];
+      final longText = map['longText'] as String?;
+      final shortText = map['shortText'] as String?;
+
+      for (final type in types) {
+        final nominatimKey = typeMapping[type];
+        if (nominatimKey != null && longText != null) {
+          addressParts[nominatimKey] = longText;
+        }
+        if (type == 'country' && shortText != null) {
+          countryCode = shortText.toLowerCase();
+        }
+      }
+    }
+    if (countryCode != null) {
+      addressParts['country_code'] = countryCode;
+    }
+
+    return GeocodingResult(
+      placeId: placeId,
+      displayName: formattedAddress,
+      lat: lat,
+      lon: lng,
+      addressParts: addressParts,
+      type: null,
+      importance: null,
+    );
+  }
 }

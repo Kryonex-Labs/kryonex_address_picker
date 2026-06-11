@@ -1,5 +1,67 @@
 # Changelog
 
+## 0.0.6
+
+### Added
+- `GeocodingService` — abstract interface for forward and reverse geocoding,
+  enabling custom provider implementations. Extended with optional
+  `supportsAutocomplete`, `autocomplete()`, and `placeDetails()` for
+  search-as-you-type providers.
+- `GooglePlacesService` — primary Google implementation using the **Places
+  API (New)** for autocomplete and the **Geocoding API** for forward/reverse
+  geocoding. Session-token aware for optimal Places billing.
+- `GoogleGeocodingService` — lightweight Google Geocoding API implementation
+  with `language` and `region` support (forward + reverse only, no
+  autocomplete).
+- `FallbackGeocodingService` — wraps a primary and fallback service; silently
+  falls back on any primary failure (network, quota, bad key, etc.).
+  Autocomplete is delegated exclusively to the primary (no Photon fallback).
+- `PlacePrediction` — lightweight model for Places API autocomplete results
+  (`placeId`, `mainText`, `secondaryText`, `fullText`).
+- `AddressPickerConfig.googleMapsApiKey` (`String?`) — convenience parameter;
+  when set, uses `GooglePlacesService` as the primary provider with automatic
+  Photon fallback. No key → Photon-only (default, free).
+- `AddressPickerConfig.geocodingService` (`GeocodingService?`) — inject a
+  fully custom geocoding service. Takes precedence over `googleMapsApiKey`
+  when both are provided.
+- `AddressPickerConfig.createGeocodingService()` — resolves the effective
+  service from the configuration (custom → Google Places+fallback → Photon).
+- `GeocodingResult.fromGoogleResult()` factory constructor for parsing
+  Google Geocoding API responses.
+- Barrel exports for `GeocodingService`, `GooglePlacesService`,
+  `GoogleGeocodingService`, `FallbackGeocodingService`, `PhotonService`,
+  and `PlacePrediction`.
+
+### Changed
+- `PhotonService` now implements `GeocodingService`.
+- Hooks (`useAddressSearch`, `useReverseGeocode`) accept a `GeocodingService`
+  parameter — callers (screens) manage the service lifecycle.
+- Comprehensive error handling across all service, hook, and screen layers
+  with consistent `debugPrint('[AddressPicker] ...')` diagnostic logging and
+  stack-trace capture.
+- User-facing error messages now show friendly text instead of raw exception
+  strings.
+- `SearchScreen` body wrapped in `SafeArea(top: false)` to prevent content
+  from scrolling behind system navigation bars.
+- `MapConfirmScreen` now renders reverse-geocode errors inline beneath the
+  address card.
+- Example app now includes an interactive **Google Maps API Key** text field
+  in the configuration knobs section, with a helper label showing the active
+  geocoding strategy.
+
+### Fixed
+- Content scrolling behind system bottom navigation bar on `SearchScreen`.
+- Dead try/catch in `GoogleGeocodingService.search()` where the HTTP call
+  was outside the try body, leaving the catch block unreachable.
+- Silent error swallowing in `PhotonService` (`catch (_)`) — errors are now
+  logged before returning fallback values.
+
+### Breaking
+- `GeocodingResult.placeId` type changed from `int` to `String` to
+  accommodate Google's opaque `place_id` values (safe pre-1.0).
+- Removed `usePhotonSearch` hook — replaced by the provider-agnostic
+  `useAddressSearch`.
+
 ## 0.0.5
 
 ### Added

@@ -6,12 +6,14 @@ import 'package:forui/forui.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../hooks/use_current_location.dart';
-import '../hooks/use_photon_search.dart';
+import '../hooks/use_address_search.dart';
 import '../hooks/use_recent_addresses.dart';
 import '../models/structured_address.dart';
 import '../theme/material_bridge.dart';
 import '../theme/picker_theme.dart';
+import '../models/place_prediction.dart';
 import '../widgets/address_tile.dart';
+import '../widgets/prediction_tile.dart';
 import '../widgets/recent_address_tile.dart';
 
 /// The primary search screen.
@@ -59,8 +61,18 @@ class SearchScreen extends HookWidget {
       return locale.languageCode;
     }, []);
 
-    final searchState = usePhotonSearch(
+    final geocodingService =
+        useMemoized(() => config.createGeocodingService(), [config]);
+
+    // Dispose service on unmount (skip if caller-provided via config.geocodingService).
+    useEffect(() {
+      if (config.geocodingService != null) return null;
+      return geocodingService.dispose;
+    }, [geocodingService]);
+
+    final searchState = useAddressSearch(
       query.value,
+      service: geocodingService,
       countryCodes: effectiveCountryCodes,
       lang: effectiveAcceptLanguage,
     );
@@ -68,6 +80,36 @@ class SearchScreen extends HookWidget {
       maxAddresses: config.maxRecentAddresses,
     );
     final locationState = useCurrentLocation();
+    final resolvingIndex = useState<int?>(null);
+
+    Future<void> onPredictionTap(int index, PlacePrediction prediction) async {
+      if (resolvingIndex.value != null) return;
+      resolvingIndex.value = index;
+      try {
+        final result = await geocodingService.placeDetails(prediction.placeId);
+        if (!context.mounted) return;
+        if (result == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Couldn't resolve address. Try again."),
+            ),
+          );
+        } else {
+          onAddressSelected(result.toStructuredAddress());
+        }
+      } catch (e, trace) {
+        debugPrint('[AddressPicker] onPredictionTap error: $e\n$trace');
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Failed to resolve address. Please try again.'),
+            ),
+          );
+        }
+      } finally {
+        resolvingIndex.value = null;
+      }
+    }
 
     useEffect(() {
       void listener() => query.value = queryController.text;
@@ -112,39 +154,50 @@ class SearchScreen extends HookWidget {
             ),
           ),
         ),
-        body: Column(
-          children: [
-            // Search bar
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-              child: _SearchBar(
-                controller: queryController,
-                hint: config.searchHint ?? 'Search for an address...',
-                colors: colors,
-                theme: theme,
+        body: SafeArea(
+          top: false, // AppBar already handles the top inset.
+          child: Column(
+            children: [
+              // Search bar
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                child: _SearchBar(
+                  controller: queryController,
+                  hint: config.searchHint ?? 'Search for an address...',
+                  colors: colors,
+                  theme: theme,
+                ),
               ),
-            ),
 
-            // Content area
-            Expanded(
-              child: query.value.isNotEmpty
-                  ? _buildSearchResults(searchState, theme, colors)
-                  : _buildInitialContent(
-                      context,
-                      recentState,
-                      locationState,
-                      theme,
-                      colors,
-                    ),
-            ),
-          ],
+              // Content area
+              Expanded(
+                child: query.value.isNotEmpty
+                    ? _buildSearchResults(
+                        searchState,
+                        resolvingIndex.value,
+                        onPredictionTap,
+                        theme,
+                        colors,
+                      )
+                    : _buildInitialContent(
+                        context,
+                        recentState,
+                        locationState,
+                        theme,
+                        colors,
+                      ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildSearchResults(
-    PhotonSearchState state,
+    AddressSearchState state,
+    int? resolvingIndex,
+    Future<void> Function(int, PlacePrediction) onPredictionTap,
     FThemeData theme,
     FColors colors,
   ) {
@@ -164,6 +217,25 @@ class SearchScreen extends HookWidget {
           title: const Text('Search Error'),
           subtitle: Text(state.error!),
         ),
+      );
+    }
+
+    // Autocomplete predictions (Places API).
+    if (state.predictions.isNotEmpty) {
+      return ListView.builder(
+        itemCount: state.predictions.length,
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+        itemBuilder: (context, index) {
+          final prediction = state.predictions[index];
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: PredictionTile(
+              prediction: prediction,
+              isLoading: resolvingIndex == index,
+              onTap: () => onPredictionTap(index, prediction),
+            ),
+          );
+        },
       );
     }
 
