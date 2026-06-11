@@ -1,0 +1,51 @@
+default_platform(:android)
+
+platform :android do
+  desc "Run static analysis"
+  lane :analyze do
+    sh("fvm flutter analyze")
+  end
+
+  desc "Check formatting"
+  lane :format_check do
+    sh("fvm flutter format --set-exit-if-changed .")
+  end
+
+  desc "Run all tests"
+  lane :test do
+    sh("fvm flutter test")
+  end
+
+  desc "Run tests with LCOV coverage and generate HTML report via genhtml"
+  lane :coverage do
+    sh("fvm flutter test --coverage")
+
+    lcov_path = "../coverage/lcov.info"
+    html_dir = "../coverage/html"
+
+    if File.exist?(lcov_path)
+      if system("which genhtml > /dev/null 2>&1")
+        sh("genhtml #{lcov_path} -o #{html_dir} --no-function-coverage")
+        UI.success("HTML coverage report: #{html_dir}/index.html")
+      else
+        UI.important("genhtml not found — install lcov (brew install lcov) for HTML reports")
+        UI.success("Raw LCOV data: #{lcov_path}")
+      end
+    else
+      UI.user_error!("coverage/lcov.info not generated — check test output above")
+    end
+  end
+
+  desc "Validate package before publishing"
+  lane :publish_dry_run do
+    sh("fvm flutter pub publish --dry-run")
+  end
+
+  desc "Run full CI pipeline: analyze → format → test → coverage → publish check"
+  lane :ci do
+    analyze
+    format_check
+    coverage
+    publish_dry_run
+  end
+end

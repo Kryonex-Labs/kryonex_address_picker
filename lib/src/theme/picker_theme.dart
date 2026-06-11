@@ -3,6 +3,10 @@ import 'package:forui/forui.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../models/address_field_spec.dart';
+import '../services/fallback_geocoding_service.dart';
+import '../services/geocoding_service.dart';
+import '../services/google_places_service.dart';
+import '../services/photon_service.dart';
 
 /// Controls how the map tiles emulate dark mode via a [ColorFilter].
 enum MapDarkMode {
@@ -85,6 +89,8 @@ class AddressPickerConfig {
     this.pinBuilder,
     this.confirmButtonStyle,
     this.attributionStyle = AddressPickerAttribution.osm,
+    this.googleMapsApiKey,
+    this.geocodingService,
   });
 
   /// Explicit ForUI theme. Takes highest priority.
@@ -174,6 +180,47 @@ class AddressPickerConfig {
   /// Attribution widget configuration. Defaults to [AddressPickerAttribution.osm]
   /// (required by OSM tile usage policy). Set to `null` to suppress attribution.
   final AddressPickerAttribution? attributionStyle;
+
+  /// Google Maps API key for the Places API (New) and Geocoding API.
+  ///
+  /// When provided (and [geocodingService] is `null`), a
+  /// [GooglePlacesService] is used as the primary geocoder (autocomplete via
+  /// Places API + geocoding via Geocoding API) with automatic silent fallback
+  /// to the free Photon service on any failure.
+  ///
+  /// When `null` the picker uses Photon exclusively (no API key required).
+  final String? googleMapsApiKey;
+
+  /// Fully custom geocoding service.
+  ///
+  /// Takes precedence over [googleMapsApiKey]. Useful when you need a
+  /// custom backend, caching layer, or non-Google provider.
+  ///
+  /// **Important:** the caller owns the lifecycle of a custom service.
+  /// [createGeocodingService] will return it as-is and the picker will
+  /// _not_ call [GeocodingService.dispose] on it.
+  final GeocodingService? geocodingService;
+
+  /// Builds the [GeocodingService] the picker should use.
+  ///
+  /// Resolution order:
+  /// 1. [geocodingService] — returned verbatim (caller-managed lifecycle).
+  /// 2. [googleMapsApiKey] set — Google primary, Photon fallback.
+  /// 3. Neither — Photon only.
+  GeocodingService createGeocodingService() {
+    if (geocodingService != null) return geocodingService!;
+
+    final photon = PhotonService();
+
+    if (googleMapsApiKey != null && googleMapsApiKey!.isNotEmpty) {
+      return FallbackGeocodingService(
+        primary: GooglePlacesService(apiKey: googleMapsApiKey!),
+        fallback: photon,
+      );
+    }
+
+    return photon;
+  }
 
   /// The detail fields to display, defaulting to the built-in set if not
   /// specified.

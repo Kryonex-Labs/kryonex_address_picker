@@ -6,3 +6,9 @@ CLAUDE.md
 .pub/
 pubspec.lock
 ONBOARDING.md
+
+# FVM Version Cache
+.fvm/
+
+# Coverage
+coverage/

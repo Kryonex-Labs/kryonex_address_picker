@@ -14,9 +14,9 @@ Future<void> pumpSheet(
     AddressFieldSpec.floor,
     AddressFieldSpec.deliveryNotes,
   ],
+  AddressPickerConfig config = const AddressPickerConfig(),
 }) async {
   final address = buildAddress();
-  const config = AddressPickerConfig();
 
   await tester.pumpWidget(
     MaterialApp(
@@ -192,6 +192,205 @@ void main() {
 
       // Both fields empty → AddressDetails.isEmpty
       expect(saved?.isEmpty, isTrue);
+    });
+
+    testWidgets('blocks save and shows error when required field is empty',
+        (tester) async {
+      AddressDetails? saved;
+      final address = buildAddress();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => ElevatedButton(
+                onPressed: () async {
+                  saved = await showModalBottomSheet<AddressDetails>(
+                    context: context,
+                    isScrollControlled: true,
+                    builder: (_) => AddressDetailSheet(
+                      config: const AddressPickerConfig(),
+                      address: address,
+                      detailFields: const [
+                        AddressFieldSpec(
+                          key: 'gate',
+                          label: 'Gate Code',
+                          required: true,
+                        ),
+                      ],
+                    ),
+                  );
+                },
+                child: const Text('open'),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+
+      // Leave field empty and tap save.
+      await tester.tap(find.text('Save address'));
+      await tester.pumpAndSettle();
+
+      // Sheet should still be open (validation blocked save).
+      expect(find.text('Gate Code'), findsWidgets);
+      // Error message from validate().
+      expect(find.text('Gate Code is required'), findsOneWidget);
+      // No value was returned.
+      expect(saved, isNull);
+    });
+
+    testWidgets('validation error clears when user types into the field',
+        (tester) async {
+      final address = buildAddress();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => ElevatedButton(
+                onPressed: () {
+                  showModalBottomSheet<AddressDetails>(
+                    context: context,
+                    isScrollControlled: true,
+                    builder: (_) => AddressDetailSheet(
+                      config: const AddressPickerConfig(),
+                      address: address,
+                      detailFields: const [
+                        AddressFieldSpec(
+                          key: 'gate',
+                          label: 'Gate Code',
+                          required: true,
+                        ),
+                      ],
+                    ),
+                  );
+                },
+                child: const Text('open'),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+
+      // Trigger validation error.
+      await tester.tap(find.text('Save address'));
+      await tester.pumpAndSettle();
+      expect(find.text('Gate Code is required'), findsOneWidget);
+
+      // Type into the field → error should clear.
+      await tester.enterText(find.byType(TextField).first, 'A');
+      await tester.pumpAndSettle();
+
+      expect(find.text('Gate Code is required'), findsNothing);
+    });
+
+    testWidgets('quick-fill chips are rendered and fill the field on tap',
+        (tester) async {
+      AddressDetails? saved;
+      final address = buildAddress();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => ElevatedButton(
+                onPressed: () async {
+                  saved = await showModalBottomSheet<AddressDetails>(
+                    context: context,
+                    isScrollControlled: true,
+                    builder: (_) => AddressDetailSheet(
+                      config: const AddressPickerConfig(),
+                      address: address,
+                      detailFields: const [
+                        AddressFieldSpec(
+                          key: 'building',
+                          label: 'Building',
+                          quickFills: ['Tower A', 'Tower B'],
+                        ),
+                      ],
+                    ),
+                  );
+                },
+                child: const Text('open'),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+
+      // Quick-fill chips should be visible.
+      expect(find.text('Tower A'), findsOneWidget);
+      expect(find.text('Tower B'), findsOneWidget);
+
+      // Tap a chip to fill the field.
+      await tester.tap(find.text('Tower A'));
+      await tester.pumpAndSettle();
+
+      // Save and verify the chip value was captured.
+      await tester.tap(find.text('Save address'));
+      await tester.pumpAndSettle();
+
+      expect(saved?['building'], 'Tower A');
+    });
+
+    testWidgets('renders subtitle when config provides detailSheetSubtitle',
+        (tester) async {
+      await pumpSheet(
+        tester,
+        config: const AddressPickerConfig(
+          detailSheetSubtitle: 'Please review your address',
+        ),
+      );
+
+      expect(find.text('Please review your address'), findsOneWidget);
+    });
+
+    testWidgets('edit button dismisses the sheet with null', (tester) async {
+      AddressDetails? saved;
+      final address = buildAddress();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => ElevatedButton(
+                onPressed: () async {
+                  saved = await showModalBottomSheet<AddressDetails>(
+                    context: context,
+                    isScrollControlled: true,
+                    builder: (_) => AddressDetailSheet(
+                      config: const AddressPickerConfig(),
+                      address: address,
+                      detailFields: const [AddressFieldSpec.apt],
+                    ),
+                  );
+                },
+                child: const Text('open'),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+
+      // Tap the edit location button (tooltip on _AddressChip).
+      await tester.tap(find.byTooltip('Edit location'));
+      await tester.pumpAndSettle();
+
+      // Sheet dismissed without saving → null.
+      expect(saved, isNull);
     });
   });
 }

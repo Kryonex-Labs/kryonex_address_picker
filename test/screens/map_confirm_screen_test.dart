@@ -5,6 +5,7 @@ import 'package:kryonex_address_picker/kryonex_address_picker.dart';
 import 'package:kryonex_address_picker/src/screens/map_confirm_screen.dart';
 import 'package:kryonex_address_picker/src/widgets/map_pin.dart';
 
+import '../_support/fake_geolocator.dart';
 import '../_support/fixtures.dart';
 
 /// Wraps [MapConfirmScreen] in a minimal [MaterialApp].
@@ -227,6 +228,130 @@ void main() {
 
       expect(find.text('Custom Map Data'), findsOneWidget);
       await drainForUiTimers(tester);
+    });
+  });
+
+  group('MapConfirmScreen — interaction', () {
+    testWidgets('back button pops the screen', (tester) async {
+      var popped = false;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) => ElevatedButton(
+              onPressed: () async {
+                await Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => MapConfirmScreen(
+                      config: const AddressPickerConfig(),
+                      initialAddress: buildAddress(),
+                      onConfirm: (_) {},
+                    ),
+                  ),
+                );
+                popped = true;
+              },
+              child: const Text('push'),
+            ),
+          ),
+        ),
+      );
+
+      // Push the screen onto the Navigator stack.
+      await tester.tap(find.text('push'));
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(find.text('Confirm Location'), findsOneWidget);
+
+      // Tap back arrow.
+      await tester.tap(find.byIcon(Icons.arrow_back));
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(popped, isTrue);
+    });
+
+    testWidgets('search button pops the screen', (tester) async {
+      var popped = false;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) => ElevatedButton(
+              onPressed: () async {
+                await Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => MapConfirmScreen(
+                      config: const AddressPickerConfig(),
+                      initialAddress: buildAddress(),
+                      onConfirm: (_) {},
+                    ),
+                  ),
+                );
+                popped = true;
+              },
+              child: const Text('push'),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('push'));
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+
+      // Tap the search icon (tooltip: 'Back to search').
+      await tester.tap(find.byTooltip('Back to search'));
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(popped, isTrue);
+    });
+
+    testWidgets('Locate Me FAB shows SnackBar when location services disabled',
+        (tester) async {
+      installGeolocatorMock(serviceEnabled: false);
+
+      await tester.pumpWidget(
+        buildMapScreen(initialAddress: buildAddress(), onConfirm: (_) {}),
+      );
+      await tester.pump();
+      await drainForUiTimers(tester);
+
+      // Tap the Locate Me FAB.
+      await tester.tap(find.byIcon(Icons.my_location));
+      await tester.pump();
+      await tester.pump();
+      await tester.pump();
+      await drainForUiTimers(tester);
+
+      expect(find.byType(SnackBar), findsOneWidget);
+      expect(
+        find.textContaining('Location services are disabled'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('Locate Me FAB moves pin on success without showing SnackBar',
+        (tester) async {
+      installGeolocatorMock();
+
+      await tester.pumpWidget(
+        buildMapScreen(initialAddress: buildAddress(), onConfirm: (_) {}),
+      );
+      await tester.pump();
+      await drainForUiTimers(tester);
+
+      // Tap the Locate Me FAB.
+      await tester.tap(find.byIcon(Icons.my_location));
+      await tester.pump();
+      await tester.pump();
+      await tester.pump();
+      await drainForUiTimers(tester);
+
+      // No error SnackBar should appear.
+      expect(find.byType(SnackBar), findsNothing);
     });
   });
 }

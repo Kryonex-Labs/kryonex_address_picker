@@ -1,8 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../models/structured_address.dart';
-import '../services/photon_service.dart';
+import '../services/geocoding_service.dart';
 
 /// State returned by [useReverseGeocode].
 class ReverseGeocodeState {
@@ -27,11 +28,16 @@ class ReverseGeocodeState {
 /// Fires automatically when [latLng] changes. Returns loading state
 /// while the request is in-flight. Cancels prior requests when
 /// coordinates change.
-ReverseGeocodeState useReverseGeocode(LatLng? latLng) {
+///
+/// The caller is responsible for the lifecycle of [service] — this hook
+/// does **not** call [GeocodingService.dispose].
+ReverseGeocodeState useReverseGeocode(
+  LatLng? latLng, {
+  required GeocodingService service,
+}) {
   final address = useState<StructuredAddress?>(null);
   final isLoading = useState(false);
   final error = useState<String?>(null);
-  final service = useMemoized(() => PhotonService(), []);
 
   useEffect(() {
     if (latLng == null) {
@@ -60,8 +66,9 @@ ReverseGeocodeState useReverseGeocode(LatLng? latLng) {
         if (result == null) {
           error.value = 'Could not resolve address at this location.';
         }
-      } catch (e) {
+      } catch (e, trace) {
         if (cancelled) return;
+        debugPrint('[AddressPicker] useReverseGeocode error: $e\n$trace');
         error.value = 'Reverse geocoding failed.';
         isLoading.value = false;
       }
@@ -71,9 +78,6 @@ ReverseGeocodeState useReverseGeocode(LatLng? latLng) {
       cancelled = true;
     };
   }, [latLng]);
-
-  // Dispose service on unmount.
-  useEffect(() => service.dispose, []);
 
   return ReverseGeocodeState(
     address: address.value,
