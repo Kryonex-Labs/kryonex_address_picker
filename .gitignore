@@ -7,6 +7,8 @@ CLAUDE.md
 pubspec.lock
 ONBOARDING.md
 
+build/
+
 # FVM Version Cache
 .fvm/
 
