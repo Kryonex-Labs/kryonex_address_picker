@@ -28,7 +28,7 @@ void main() {
         .thenAnswer((_) async => response);
   }
 
-  String? _lastPostBody;
+  String? lastPostBody;
 
   /// Stubs `client.post` to return [response], recording the raw body string.
   void stubPost(http.Response response) {
@@ -39,7 +39,7 @@ void main() {
         body: any(named: 'body'),
       ),
     ).thenAnswer((invocation) async {
-      _lastPostBody =
+      lastPostBody =
           invocation.namedArguments[const Symbol('body')] as String?;
       return response;
     });
@@ -158,7 +158,7 @@ void main() {
 
       await service.autocomplete('coffee shop');
 
-      final body = json.decode(_lastPostBody!) as Map<String, dynamic>;
+      final body = json.decode(lastPostBody!) as Map<String, dynamic>;
       expect(body['input'], 'coffee shop');
     });
 
@@ -167,7 +167,7 @@ void main() {
 
       await service.autocomplete('anything');
 
-      final body = json.decode(_lastPostBody!) as Map<String, dynamic>;
+      final body = json.decode(lastPostBody!) as Map<String, dynamic>;
       expect(body['sessionToken'], isNotEmpty);
     });
 
@@ -176,7 +176,7 @@ void main() {
 
       await service.autocomplete('cafe', lang: 'de');
 
-      final body = json.decode(_lastPostBody!) as Map<String, dynamic>;
+      final body = json.decode(lastPostBody!) as Map<String, dynamic>;
       expect(body['languageCode'], 'de');
     });
 
@@ -185,7 +185,7 @@ void main() {
 
       await service.autocomplete('cafe');
 
-      final body = json.decode(_lastPostBody!) as Map<String, dynamic>;
+      final body = json.decode(lastPostBody!) as Map<String, dynamic>;
       expect(body.containsKey('languageCode'), isFalse);
     });
 
