@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:forui/forui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kryonex_address_picker/kryonex_address_picker.dart';
 import 'package:kryonex_address_picker/src/screens/address_detail_screen.dart';
@@ -86,7 +87,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Enter a value in the apt field.
-      await tester.enterText(find.byType(TextField).first, '4B');
+      await tester.enterText(find.byType(EditableText).first, '4B');
       await tester.pumpAndSettle();
 
       // Tap save.
@@ -285,7 +286,7 @@ void main() {
       expect(find.text('Gate Code is required'), findsOneWidget);
 
       // Type into the field → error should clear.
-      await tester.enterText(find.byType(TextField).first, 'A');
+      await tester.enterText(find.byType(EditableText).first, 'A');
       await tester.pumpAndSettle();
 
       expect(find.text('Gate Code is required'), findsNothing);

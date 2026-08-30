@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.0.7
+
+### Changed
+- Upgraded `forui` from `^0.22.1` to `^0.26.0` and migrated to its new APIs:
+  - `FThemes.zinc.{light,dark}.touch` → `FTheme.neutral.{light,dark}.touch`
+    (`FThemes` was removed upstream; there is no `zinc` preset anymore).
+  - `FTypography` split into `display` and `body` typefaces —
+    `typography.xl2` → `typography.display.xl2`, `typography.sm` /
+    `typography.xs` → `typography.body.sm` / `typography.body.xs`.
+  - `FTextField` no longer wraps a Material `TextField`; widget tests now
+    target `FTextField` directly.
+
+### Breaking
+- Minimum SDK constraints raised to `sdk: ^3.13.0` and `flutter: >=3.47.0`,
+  required by `forui` 0.26. Consumers on older toolchains must stay on 0.0.6.
+
 ## 0.0.6
 
 ### Added

@@ -139,7 +139,7 @@ class SearchScreen extends HookWidget {
           ),
           title: Text(
             'Search Address',
-            style: theme.typography.xl2.copyWith(
+            style: theme.typography.display.xl2.copyWith(
               color: colors.foreground,
               fontWeight: FontWeight.w700,
               letterSpacing: -0.5,
@@ -245,7 +245,7 @@ class SearchScreen extends HookWidget {
           padding: const EdgeInsets.all(32),
           child: Text(
             'No results found',
-            style: theme.typography.sm.copyWith(color: colors.mutedForeground),
+            style: theme.typography.body.sm.copyWith(color: colors.mutedForeground),
           ),
         ),
       );
@@ -313,7 +313,7 @@ class SearchScreen extends HookWidget {
                   Expanded(
                     child: Text(
                       'Use current location',
-                      style: theme.typography.sm.copyWith(
+                      style: theme.typography.body.sm.copyWith(
                         color: colors.foreground,
                         fontWeight: FontWeight.w600,
                       ),
@@ -350,7 +350,7 @@ class SearchScreen extends HookWidget {
         if (recentState.addresses.isNotEmpty) ...[
           Text(
             'RECENT',
-            style: theme.typography.sm.copyWith(
+            style: theme.typography.body.sm.copyWith(
               color: colors.mutedForeground,
               fontWeight: FontWeight.w600,
               letterSpacing: 0.8,
@@ -494,12 +494,12 @@ class _SearchBarState extends State<_SearchBar>
                   controller: widget.controller,
                   focusNode: _focusNode,
                   autofocus: true,
-                  style: widget.theme.typography.sm.copyWith(
+                  style: widget.theme.typography.body.sm.copyWith(
                     color: widget.colors.foreground,
                   ),
                   decoration: InputDecoration(
                     hintText: widget.hint,
-                    hintStyle: widget.theme.typography.sm.copyWith(
+                    hintStyle: widget.theme.typography.body.sm.copyWith(
                       color: widget.colors.mutedForeground,
                     ),
                     border: InputBorder.none,

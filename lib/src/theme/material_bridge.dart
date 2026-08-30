@@ -17,8 +17,8 @@ import 'package:forui/forui.dart';
 FThemeData bridgeFromMaterial(ThemeData material) {
   // Start with the appropriate ForUI base theme.
   final base = material.brightness == Brightness.dark
-      ? FThemes.zinc.dark.touch
-      : FThemes.zinc.light.touch;
+      ? FTheme.neutral.dark.touch
+      : FTheme.neutral.light.touch;
 
   return base;
 }
