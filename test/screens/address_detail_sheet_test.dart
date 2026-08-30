@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:forui/forui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kryonex_address_picker/kryonex_address_picker.dart';
 import 'package:kryonex_address_picker/src/screens/address_detail_screen.dart';
