@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.0.9
+
+### Fixed
+- Reverted `forui` dependency to `^0.22.1` and migrated to its flat typography
+  and theme APIs:
+  - `FTheme.neutral` → `FThemes.neutral` (predefined themes live on the
+    `FThemes` extension in 0.22.x).
+  - `theme.typography.display.xl2` → `theme.typography.xl2` (flat t-shirt
+    size scale, no `display`/`body` groups).
+  - `theme.typography.body.sm` / `.xs` → `theme.typography.sm` / `.xs`.
+  - Removed `const` from `FCard(...)` constructor call (not const-constructible
+    in 0.22.x).
+
 ## 0.0.8
 
 ### Added

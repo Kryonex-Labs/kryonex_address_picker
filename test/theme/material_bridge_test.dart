@@ -19,7 +19,7 @@ void main() {
   group('resolveTheme', () {
     testWidgets('returns the explicit ForUI theme when provided',
         (tester) async {
-      final explicit = FTheme.neutral.dark.touch;
+      final explicit = FThemes.neutral.dark.touch;
       late FThemeData resolved;
 
       await tester.pumpWidget(

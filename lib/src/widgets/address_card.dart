@@ -23,8 +23,8 @@ class AddressCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return const FCard(
-        child: Padding(
+      return FCard(
+        child: const Padding(
           padding: EdgeInsets.symmetric(vertical: 12),
           child: Center(
             child: SizedBox(

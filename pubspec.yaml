@@ -1,6 +1,6 @@
 name: kryonex_address_picker
 description: An opinionated, search-first address picker for Flutter with map confirmation, selectable OpenStreetMap or Google Maps rendering, and structured address output.
-version: 0.0.8
+version: 0.0.9
 homepage: https://github.com/Kryonex-Labs/kryonex_address_picker
 documentation: https://pub.dev/documentation/kryonex_address_picker/latest/
 repository: https://github.com/Kryonex-Labs/kryonex_address_picker
@@ -12,7 +12,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  forui: ^0.26.0
+  forui: ^0.22.1
   flutter_hooks: ^0.20.0
   flutter_map: ^8.3.0
   latlong2: ^0.9.0
