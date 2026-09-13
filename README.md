@@ -112,14 +112,15 @@ Address entry is usually a mess of free-text fields and bad data. This is the op
 type, confirm on a map, done. You get back clean, structured, geocoded results.
 
 Powered by [Komoot Photon](https://photon.komoot.io) (OpenStreetMap data, no API key),
-[`flutter_map`](https://pub.dev/packages/flutter_map), and
+[`flutter_map`](https://pub.dev/packages/flutter_map) or
+[`google_maps_flutter`](https://pub.dev/packages/google_maps_flutter), and
 [ForUI](https://pub.dev/packages/forui) components.
 
 ## ⟶ Features
 
 ```
 ◆ Search-first           debounced Photon autocomplete
-◆ Map confirmation       tap-to-drop pin on an interactive OSM map
+◆ Map confirmation       selectable OpenStreetMap or Google Maps renderer
 ◆ Structured output      street · city · state · postal · country · latLng
 ◆ Address details        apt · floor · delivery notes
 ◆ Recent addresses       locally persisted picks
@@ -240,11 +241,32 @@ and `sheetEnableDrag` in the table below.
 The picker also supports map-specific customization via `AddressPickerConfig`.
 Use the configuration fields below to:
 
+- choose OpenStreetMap (default) or Google Maps with `mapProvider`
 - toggle tile dark mode with `MapDarkMode.auto`, `MapDarkMode.light`, or `MapDarkMode.dark`
 - render a custom map pin via `pinBuilder`
 - override the confirm button style with `confirmButtonStyle`
 - control OSM attribution via `AddressPickerAttribution.osm` or a custom `AddressPickerAttribution`
 - position attribution in the map corners with `MapAttributionAlignment.bottomLeft` or `MapAttributionAlignment.bottomRight`
+
+Choose Google Maps like this:
+
+```dart
+final result = await showAddressPicker(
+  context,
+  config: const AddressPickerConfig(
+    mapProvider: AddressPickerMapProvider.googleMaps,
+  ),
+);
+```
+
+The host application must enable the appropriate Maps SDK and configure its
+API key for Android, iOS, or web. `googleMapsApiKey` remains the optional key
+used by this package's Places and Geocoding REST services; it does not replace
+the platform configuration required to render a Google map.
+
+`mapDarkMode`, `pinBuilder`, and `attributionStyle` customize the OpenStreetMap
+renderer. Google Maps supplies its native marker and manages its own styling
+and attribution.
 
 ## ⟶ Configuration
 
@@ -259,6 +281,7 @@ Use the configuration fields below to:
 | `showDetailScreen`    | `bool`                    | `true`            | Show the detail sheet after map confirm                                                   |
 | `detailFields`        | `List<AddressFieldSpec>?` | apt, floor, notes | Which detail fields to display, and in what order                                         |
 | `searchHint`          | `String?`                 | `null`            | Search bar placeholder (falls back to `"Search for an address..."`)                       |
+| `mapProvider`         | `AddressPickerMapProvider` | `openStreetMap`   | Confirmation map renderer: `openStreetMap` or `googleMaps`                                 |
 | `mapZoom`             | `double`                  | `16.0`            | Default map zoom level                                                                    |
 | `mapDarkMode`         | `MapDarkMode`             | `auto`            | Controls tile dark-mode emulation: `auto`, `light`, or `dark`                             |
 | `pinBuilder`          | `WidgetBuilder?`          | `null`            | Custom map pin widget builder; renders instead of the default `MapPin`                    |
@@ -327,6 +350,15 @@ showAddressPicker(context);
 ```
 
 ## ⟶ Platform Setup
+
+### Google Maps renderer
+
+When using `AddressPickerMapProvider.googleMaps`, follow the official
+[`google_maps_flutter` setup](https://pub.dev/packages/google_maps_flutter#platform-setup)
+for every target platform. Enable Maps SDK for Android, Maps SDK for iOS, or
+Maps JavaScript API for web, then add a restricted API key to the host app.
+The current plugin supports Android, iOS, and web; it does not provide native
+desktop maps.
 
 ### Location permissions (geolocator)
 

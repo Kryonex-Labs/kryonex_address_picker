@@ -1,7 +1,8 @@
 /// An opinionated, search-first address picker for Flutter.
 ///
-/// Built with ForUI components, flutter_map, and pluggable geocoding
-/// (Photon by default, Google Geocoding API optional).
+/// Built with ForUI components, selectable OpenStreetMap or Google Maps
+/// rendering, and pluggable geocoding (Photon by default, Google APIs
+/// optional).
 ///
 /// ## Quick Start
 ///
@@ -35,6 +36,7 @@ export 'src/theme/picker_theme.dart'
     show
         AddressPickerConfig,
         AddressPickerAttribution,
+        AddressPickerMapProvider,
         MapAttributionAlignment,
         MapDarkMode;
 

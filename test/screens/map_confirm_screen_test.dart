@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart' as google_maps;
 import 'package:kryonex_address_picker/kryonex_address_picker.dart';
 import 'package:kryonex_address_picker/src/screens/map_confirm_screen.dart';
 import 'package:kryonex_address_picker/src/widgets/map_pin.dart';
@@ -32,6 +33,42 @@ Future<void> drainForUiTimers(WidgetTester tester) async {
 
 void main() {
   group('MapConfirmScreen', () {
+    testWidgets('renders Google Maps when configured', (tester) async {
+      await tester.pumpWidget(
+        buildMapScreen(
+          initialAddress: buildAddress(),
+          onConfirm: (_) {},
+          config: const AddressPickerConfig(
+            mapProvider: AddressPickerMapProvider.googleMaps,
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.byType(google_maps.GoogleMap), findsOneWidget);
+      expect(find.byType(FlutterMap), findsNothing);
+
+      var googleMap = tester.widget<google_maps.GoogleMap>(
+        find.byType(google_maps.GoogleMap),
+      );
+      expect(
+        googleMap.markers.single.position,
+        const google_maps.LatLng(12.9716, 77.5946),
+      );
+
+      googleMap.onTap!(const google_maps.LatLng(40.7128, -74.0060));
+      await tester.pump();
+
+      googleMap = tester.widget<google_maps.GoogleMap>(
+        find.byType(google_maps.GoogleMap),
+      );
+      expect(
+        googleMap.markers.single.position,
+        const google_maps.LatLng(40.7128, -74.0060),
+      );
+      await drainForUiTimers(tester);
+    });
+
     testWidgets('displays "Confirm Location" app bar title', (tester) async {
       await tester.pumpWidget(
         buildMapScreen(initialAddress: buildAddress(), onConfirm: (_) {}),
@@ -42,8 +79,9 @@ void main() {
       await drainForUiTimers(tester);
     });
 
-    testWidgets('shows address primary line from initialAddress immediately',
-        (tester) async {
+    testWidgets('shows address primary line from initialAddress immediately', (
+      tester,
+    ) async {
       final address = buildAddress();
       await tester.pumpWidget(
         buildMapScreen(initialAddress: address, onConfirm: (_) {}),
@@ -55,30 +93,32 @@ void main() {
     });
 
     testWidgets(
-        'Confirm button is enabled when initialAddress is set and not loading',
-        (tester) async {
-      final address = buildAddress();
-      StructuredAddress? confirmed;
+      'Confirm button is enabled when initialAddress is set and not loading',
+      (tester) async {
+        final address = buildAddress();
+        StructuredAddress? confirmed;
 
-      await tester.pumpWidget(
-        buildMapScreen(
-          initialAddress: address,
-          onConfirm: (a) => confirmed = a,
-        ),
-      );
-      await tester.pump();
+        await tester.pumpWidget(
+          buildMapScreen(
+            initialAddress: address,
+            onConfirm: (a) => confirmed = a,
+          ),
+        );
+        await tester.pump();
 
-      final confirmButton = find.text('Confirm Address');
-      expect(confirmButton, findsOneWidget);
+        final confirmButton = find.text('Confirm Address');
+        expect(confirmButton, findsOneWidget);
 
-      await tester.tap(confirmButton);
-      await drainForUiTimers(tester);
+        await tester.tap(confirmButton);
+        await drainForUiTimers(tester);
 
-      expect(confirmed, isNotNull);
-    });
+        expect(confirmed, isNotNull);
+      },
+    );
 
-    testWidgets('shows placeholder text when no initialAddress provided',
-        (tester) async {
+    testWidgets('shows placeholder text when no initialAddress provided', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         buildMapScreen(initialAddress: null, onConfirm: (_) {}),
       );
@@ -88,32 +128,36 @@ void main() {
       await drainForUiTimers(tester);
     });
 
-    testWidgets('Confirm button is disabled (onPress null) when no address set',
-        (tester) async {
-      await tester.pumpWidget(
-        buildMapScreen(initialAddress: null, onConfirm: (_) {}),
-      );
-      await tester.pump();
+    testWidgets(
+      'Confirm button is disabled (onPress null) when no address set',
+      (tester) async {
+        await tester.pumpWidget(
+          buildMapScreen(initialAddress: null, onConfirm: (_) {}),
+        );
+        await tester.pump();
 
-      // Check that the Confirm FilledButton has null onPressed.
-      final disabledButtons = find.byWidgetPredicate(
-        (w) => w is FilledButton && w.onPressed == null,
-      );
-      expect(disabledButtons, findsWidgets);
-      await drainForUiTimers(tester);
-    });
+        // Check that the Confirm FilledButton has null onPressed.
+        final disabledButtons = find.byWidgetPredicate(
+          (w) => w is FilledButton && w.onPressed == null,
+        );
+        expect(disabledButtons, findsWidgets);
+        await drainForUiTimers(tester);
+      },
+    );
   });
 
   group('MapConfirmScreen — new theming options', () {
-    testWidgets('pinBuilder override is rendered instead of default MapPin',
-        (tester) async {
+    testWidgets('pinBuilder override is rendered instead of default MapPin', (
+      tester,
+    ) async {
       const pinKey = Key('custom-pin');
       await tester.pumpWidget(
         buildMapScreen(
           initialAddress: buildAddress(),
           onConfirm: (_) {},
           config: AddressPickerConfig(
-            pinBuilder: (_) => const SizedBox(key: pinKey, width: 40, height: 40),
+            pinBuilder: (_) =>
+                const SizedBox(key: pinKey, width: 40, height: 40),
           ),
         ),
       );
@@ -124,8 +168,9 @@ void main() {
       await drainForUiTimers(tester);
     });
 
-    testWidgets('confirmButtonStyle is applied to Confirm button',
-        (tester) async {
+    testWidgets('confirmButtonStyle is applied to Confirm button', (
+      tester,
+    ) async {
       final customStyle = FilledButton.styleFrom(
         backgroundColor: const Color(0xFFFF5733),
       );
@@ -145,8 +190,9 @@ void main() {
       await drainForUiTimers(tester);
     });
 
-    testWidgets('mapDarkMode.dark wraps tiles in a ColorFiltered widget',
-        (tester) async {
+    testWidgets('mapDarkMode.dark wraps tiles in a ColorFiltered widget', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         buildMapScreen(
           initialAddress: buildAddress(),
@@ -161,42 +207,40 @@ void main() {
       await drainForUiTimers(tester);
     });
 
-    testWidgets('mapDarkMode.light does not apply ColorFiltered on light theme',
-        (tester) async {
+    testWidgets(
+      'mapDarkMode.light does not apply ColorFiltered on light theme',
+      (tester) async {
+        await tester.pumpWidget(
+          buildMapScreen(
+            initialAddress: buildAddress(),
+            onConfirm: (_) {},
+            config: const AddressPickerConfig(mapDarkMode: MapDarkMode.light),
+            theme: ThemeData(brightness: Brightness.light),
+          ),
+        );
+        await tester.pump();
+
+        // No ColorFiltered overlay should be present.
+        expect(find.byType(ColorFiltered), findsNothing);
+        await drainForUiTimers(tester);
+      },
+    );
+
+    testWidgets('attribution text is shown by default (OSM attribution)', (
+      tester,
+    ) async {
       await tester.pumpWidget(
-        buildMapScreen(
-          initialAddress: buildAddress(),
-          onConfirm: (_) {},
-          config: const AddressPickerConfig(mapDarkMode: MapDarkMode.light),
-          theme: ThemeData(brightness: Brightness.light),
-        ),
+        buildMapScreen(initialAddress: buildAddress(), onConfirm: (_) {}),
       );
       await tester.pump();
 
-      // No ColorFiltered overlay should be present.
-      expect(find.byType(ColorFiltered), findsNothing);
+      expect(find.text('© OpenStreetMap contributors'), findsOneWidget);
       await drainForUiTimers(tester);
     });
 
-    testWidgets('attribution text is shown by default (OSM attribution)',
-        (tester) async {
-      await tester.pumpWidget(
-        buildMapScreen(
-          initialAddress: buildAddress(),
-          onConfirm: (_) {},
-        ),
-      );
-      await tester.pump();
-
-      expect(
-        find.text('© OpenStreetMap contributors'),
-        findsOneWidget,
-      );
-      await drainForUiTimers(tester);
-    });
-
-    testWidgets('attributionStyle: null suppresses the attribution widget',
-        (tester) async {
+    testWidgets('attributionStyle: null suppresses the attribution widget', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         buildMapScreen(
           initialAddress: buildAddress(),
@@ -206,10 +250,7 @@ void main() {
       );
       await tester.pump();
 
-      expect(
-        find.byType(SimpleAttributionWidget),
-        findsNothing,
-      );
+      expect(find.byType(SimpleAttributionWidget), findsNothing);
       await drainForUiTimers(tester);
     });
 
@@ -221,7 +262,9 @@ void main() {
         buildMapScreen(
           initialAddress: buildAddress(),
           onConfirm: (_) {},
-          config: const AddressPickerConfig(attributionStyle: customAttribution),
+          config: const AddressPickerConfig(
+            attributionStyle: customAttribution,
+          ),
         ),
       );
       await tester.pump();
@@ -309,32 +352,35 @@ void main() {
       expect(popped, isTrue);
     });
 
-    testWidgets('Locate Me FAB shows SnackBar when location services disabled',
-        (tester) async {
-      installGeolocatorMock(serviceEnabled: false);
+    testWidgets(
+      'Locate Me FAB shows SnackBar when location services disabled',
+      (tester) async {
+        installGeolocatorMock(serviceEnabled: false);
 
-      await tester.pumpWidget(
-        buildMapScreen(initialAddress: buildAddress(), onConfirm: (_) {}),
-      );
-      await tester.pump();
-      await drainForUiTimers(tester);
+        await tester.pumpWidget(
+          buildMapScreen(initialAddress: buildAddress(), onConfirm: (_) {}),
+        );
+        await tester.pump();
+        await drainForUiTimers(tester);
 
-      // Tap the Locate Me FAB.
-      await tester.tap(find.byIcon(Icons.my_location));
-      await tester.pump();
-      await tester.pump();
-      await tester.pump();
-      await drainForUiTimers(tester);
+        // Tap the Locate Me FAB.
+        await tester.tap(find.byIcon(Icons.my_location));
+        await tester.pump();
+        await tester.pump();
+        await tester.pump();
+        await drainForUiTimers(tester);
 
-      expect(find.byType(SnackBar), findsOneWidget);
-      expect(
-        find.textContaining('Location services are disabled'),
-        findsOneWidget,
-      );
-    });
+        expect(find.byType(SnackBar), findsOneWidget);
+        expect(
+          find.textContaining('Location services are disabled'),
+          findsOneWidget,
+        );
+      },
+    );
 
-    testWidgets('Locate Me FAB moves pin on success without showing SnackBar',
-        (tester) async {
+    testWidgets('Locate Me FAB moves pin on success without showing SnackBar', (
+      tester,
+    ) async {
       installGeolocatorMock();
 
       await tester.pumpWidget(

@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.0.8
+
+### Added
+- `AddressPickerMapProvider` and `AddressPickerConfig.mapProvider`, allowing
+  consumers to render the confirmation screen with either the existing
+  OpenStreetMap/`flutter_map` implementation or `google_maps_flutter`.
+- Google Maps confirmation supports initial centering, tap-to-select markers,
+  reverse geocoding, and recentering from the current-location action.
+- Added `google_maps_flutter` as a package dependency and documented the host
+  platform API-key setup required by the Google Maps renderer.
+
 ## 0.0.7
 
 ### Changed

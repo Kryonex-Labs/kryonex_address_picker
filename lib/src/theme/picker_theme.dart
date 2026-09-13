@@ -20,6 +20,18 @@ enum MapDarkMode {
   dark,
 }
 
+/// Map SDK used by the confirmation screen.
+enum AddressPickerMapProvider {
+  /// OpenStreetMap tiles rendered with `flutter_map` (default).
+  openStreetMap,
+
+  /// Google Maps rendered with `google_maps_flutter`.
+  ///
+  /// The host application must configure a Google Maps SDK API key for each
+  /// target platform supported by the app.
+  googleMaps,
+}
+
 /// Declarative configuration for the map attribution widget.
 ///
 /// Pass `null` as [AddressPickerConfig.attributionStyle] to disable
@@ -75,6 +87,7 @@ class AddressPickerConfig {
     this.showDetailScreen = true,
     this.detailFields,
     this.searchHint,
+    this.mapProvider = AddressPickerMapProvider.openStreetMap,
     this.mapZoom = 16.0,
     this.detailSheetTitle = 'Add details',
     this.detailSheetSubtitle,
@@ -133,6 +146,13 @@ class AddressPickerConfig {
   /// Placeholder text for the search bar.
   final String? searchHint;
 
+  /// Map SDK used by the confirmation screen.
+  ///
+  /// Defaults to [AddressPickerMapProvider.openStreetMap]. When set to
+  /// [AddressPickerMapProvider.googleMaps], the host application must also
+  /// complete the platform setup required by `google_maps_flutter`.
+  final AddressPickerMapProvider mapProvider;
+
   /// Default zoom level when centering the map on an address.
   final double mapZoom;
 
@@ -167,8 +187,11 @@ class AddressPickerConfig {
   /// the ambient [ThemeData.brightness].
   final MapDarkMode mapDarkMode;
 
-  /// Custom map pin widget builder. When null, a default [MapPin] is rendered
-  /// using [ColorScheme.primary] as its color.
+  /// Custom OpenStreetMap pin widget builder. When null, a default [MapPin] is
+  /// rendered using [ColorScheme.primary] as its color.
+  ///
+  /// Google Maps uses its native default marker because its SDK markers are
+  /// bitmap descriptors rather than Flutter widgets.
   final WidgetBuilder? pinBuilder;
 
   /// Style applied to the Confirm Address button.
@@ -177,8 +200,9 @@ class AddressPickerConfig {
   /// [ColorScheme.primary].
   final ButtonStyle? confirmButtonStyle;
 
-  /// Attribution widget configuration. Defaults to [AddressPickerAttribution.osm]
-  /// (required by OSM tile usage policy). Set to `null` to suppress attribution.
+  /// OpenStreetMap attribution widget configuration. Defaults to
+  /// [AddressPickerAttribution.osm] (required by OSM tile usage policy). Set to
+  /// `null` to suppress attribution. Google Maps manages its own attribution.
   final AddressPickerAttribution? attributionStyle;
 
   /// Google Maps API key for the Places API (New) and Geocoding API.

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:forui/forui.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart' as google_maps;
 import 'package:latlong2/latlong.dart';
 
 import '../hooks/use_current_location.dart';
@@ -42,11 +43,14 @@ class MapConfirmScreen extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final mapController = useMapController();
+    final googleMapController = useRef<google_maps.GoogleMapController?>(null);
     final selectedLatLng = useState<LatLng?>(
       initialAddress?.latLng ?? initialLatLng,
     );
-    final geocodingService =
-        useMemoized(() => config.createGeocodingService(), [config]);
+    final geocodingService = useMemoized(
+      () => config.createGeocodingService(),
+      [config],
+    );
 
     // Dispose service on unmount (skip if caller-provided via config.geocodingService).
     useEffect(() {
@@ -54,8 +58,16 @@ class MapConfirmScreen extends HookWidget {
       return geocodingService.dispose;
     }, [geocodingService]);
 
-    final reverseState =
-        useReverseGeocode(selectedLatLng.value, service: geocodingService);
+    useEffect(() {
+      return () {
+        googleMapController.value?.dispose();
+      };
+    }, const []);
+
+    final reverseState = useReverseGeocode(
+      selectedLatLng.value,
+      service: geocodingService,
+    );
     final locationState = useCurrentLocation();
 
     // Use the reverse-geocoded address when available, fall back to initial.
@@ -91,6 +103,76 @@ class MapConfirmScreen extends HookWidget {
       0, 0, 0, 1, 0,
     ]);
 
+    final map = switch (config.mapProvider) {
+      AddressPickerMapProvider.openStreetMap => FlutterMap(
+        mapController: mapController,
+        options: MapOptions(
+          initialCenter: initialCenter,
+          initialZoom: config.mapZoom,
+          onTap: (tapPosition, latLng) {
+            selectedLatLng.value = latLng;
+          },
+        ),
+        children: [
+          TileLayer(
+            urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+            userAgentPackageName: 'com.kryonex.address_picker',
+            // flutter_map 8.x enables an on-disk tile cache by default,
+            // which requires path_provider's native plugin. Disable it
+            // so the package works without consumers wiring up
+            // path_provider (avoids MissingPluginException for
+            // getApplicationCacheDirectory).
+            tileProvider: NetworkTileProvider(
+              cachingProvider: const DisabledMapCachingProvider(),
+            ),
+            tileBuilder: useDarkTiles
+                ? (context, tile, _) =>
+                      ColorFiltered(colorFilter: darkTileFilter, child: tile)
+                : null,
+          ),
+          if (selectedLatLng.value != null)
+            MarkerLayer(
+              markers: [
+                Marker(
+                  point: selectedLatLng.value!,
+                  width: 40,
+                  height: 40,
+                  alignment: Alignment.topCenter,
+                  child: config.pinBuilder != null
+                      ? config.pinBuilder!(context)
+                      : MapPin(color: colorScheme.primary),
+                ),
+              ],
+            ),
+          if (config.attributionStyle != null)
+            _buildAttribution(config.attributionStyle!),
+        ],
+      ),
+      AddressPickerMapProvider.googleMaps => google_maps.GoogleMap(
+        initialCameraPosition: google_maps.CameraPosition(
+          target: _toGoogleLatLng(initialCenter),
+          zoom: config.mapZoom,
+        ),
+        onMapCreated: (controller) {
+          googleMapController.value = controller;
+        },
+        onTap: (latLng) {
+          selectedLatLng.value = _fromGoogleLatLng(latLng);
+        },
+        markers: {
+          if (selectedLatLng.value != null)
+            google_maps.Marker(
+              markerId: const google_maps.MarkerId('selected-location'),
+              position: _toGoogleLatLng(selectedLatLng.value!),
+            ),
+        },
+        mapToolbarEnabled: false,
+        myLocationButtonEnabled: false,
+        // Keep Google branding and legal notices clear of the address card.
+        padding: const EdgeInsets.only(bottom: 190),
+      ),
+    };
+
     return FTheme(
       data: theme,
       child: Scaffold(
@@ -111,56 +193,7 @@ class MapConfirmScreen extends HookWidget {
         body: SafeArea(
           child: Stack(
             children: [
-              // Map
-              FlutterMap(
-                mapController: mapController,
-                options: MapOptions(
-                  initialCenter: initialCenter,
-                  initialZoom: config.mapZoom,
-                  onTap: (tapPosition, latLng) {
-                    selectedLatLng.value = latLng;
-                  },
-                ),
-                children: [
-                  TileLayer(
-                    urlTemplate:
-                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                    userAgentPackageName: 'com.kryonex.address_picker',
-                    // flutter_map 8.x enables an on-disk tile cache by default,
-                    // which requires path_provider's native plugin. Disable it
-                    // so the package works without consumers wiring up
-                    // path_provider (avoids MissingPluginException for
-                    // getApplicationCacheDirectory).
-                    tileProvider: NetworkTileProvider(
-                      cachingProvider: const DisabledMapCachingProvider(),
-                    ),
-                    tileBuilder: useDarkTiles
-                        ? (context, tile, _) => ColorFiltered(
-                            colorFilter: darkTileFilter,
-                            child: tile,
-                          )
-                        : null,
-                  ),
-                  if (selectedLatLng.value != null)
-                    MarkerLayer(
-                      markers: [
-                        Marker(
-                          point: selectedLatLng.value!,
-                          width: 40,
-                          height: 40,
-                          alignment: Alignment.topCenter,
-                          child: config.pinBuilder != null
-                              ? config.pinBuilder!(context)
-                              : MapPin(
-                                  color: colorScheme.primary,
-                                ),
-                        ),
-                      ],
-                    ),
-                  if (config.attributionStyle != null)
-                    _buildAttribution(config.attributionStyle!),
-                ],
-              ),
+              map,
 
               // Locate Me button
               Positioned(
@@ -180,10 +213,20 @@ class MapConfirmScreen extends HookWidget {
                             }
                           } else if (result.location != null) {
                             selectedLatLng.value = result.location!;
-                            mapController.move(
-                              result.location!,
-                              config.mapZoom,
-                            );
+                            switch (config.mapProvider) {
+                              case AddressPickerMapProvider.openStreetMap:
+                                mapController.move(
+                                  result.location!,
+                                  config.mapZoom,
+                                );
+                              case AddressPickerMapProvider.googleMaps:
+                                await googleMapController.value?.animateCamera(
+                                  google_maps.CameraUpdate.newLatLngZoom(
+                                    _toGoogleLatLng(result.location!),
+                                    config.mapZoom,
+                                  ),
+                                );
+                            }
                           }
                         },
                   child: locationState.isLoading
@@ -223,15 +266,15 @@ class MapConfirmScreen extends HookWidget {
                     SizedBox(
                       width: double.infinity,
                       child: FilledButton(
-                        style: config.confirmButtonStyle ??
+                        style:
+                            config.confirmButtonStyle ??
                             FilledButton.styleFrom(
                               backgroundColor:
                                   config.sheetAccentColor ??
                                   colorScheme.primary,
-                              foregroundColor:
-                                  colorScheme.onPrimary,
-                              disabledBackgroundColor:
-                                  colorScheme.primary.withValues(alpha: 0.38),
+                              foregroundColor: colorScheme.onPrimary,
+                              disabledBackgroundColor: colorScheme.primary
+                                  .withValues(alpha: 0.38),
                               minimumSize: const Size.fromHeight(48),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
@@ -256,17 +299,23 @@ class MapConfirmScreen extends HookWidget {
 
   /// Builds a [SimpleAttributionWidget] from [AddressPickerAttribution].
   Widget _buildAttribution(AddressPickerAttribution attribution) {
-    final alignment = attribution.alignment == MapAttributionAlignment.bottomRight
+    final alignment =
+        attribution.alignment == MapAttributionAlignment.bottomRight
         ? Alignment.bottomRight
         : Alignment.bottomLeft;
 
     return SimpleAttributionWidget(
-      source: Text(
-        attribution.text,
-        style: attribution.textStyle,
-      ),
+      source: Text(attribution.text, style: attribution.textStyle),
       alignment: alignment,
       backgroundColor: attribution.backgroundColor ?? Colors.white70,
     );
+  }
+
+  static google_maps.LatLng _toGoogleLatLng(LatLng latLng) {
+    return google_maps.LatLng(latLng.latitude, latLng.longitude);
+  }
+
+  static LatLng _fromGoogleLatLng(google_maps.LatLng latLng) {
+    return LatLng(latLng.latitude, latLng.longitude);
   }
 }
