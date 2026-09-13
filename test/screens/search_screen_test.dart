@@ -48,8 +48,9 @@ void main() {
   });
 
   group('SearchScreen', () {
-    testWidgets('shows search bar and "Pick on Map" button on empty query',
-        (tester) async {
+    testWidgets('shows search bar and "Pick on Map" button on empty query', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         buildSearchScreen(onAddressSelected: (_) {}, onPickOnMap: () {}),
       );
@@ -59,8 +60,9 @@ void main() {
       expect(find.text('Use current location'), findsOneWidget);
     });
 
-    testWidgets('shows recent addresses loaded from shared_preferences',
-        (tester) async {
+    testWidgets('shows recent addresses loaded from shared_preferences', (
+      tester,
+    ) async {
       final address = buildAddress(displayName: 'Saved Place');
       SharedPreferences.setMockInitialValues({
         _storageKey: json.encode([address.toJson()]),
@@ -90,8 +92,9 @@ void main() {
       expect(tapped, isTrue);
     });
 
-    testWidgets('tapping a recent address fires onAddressSelected',
-        (tester) async {
+    testWidgets('tapping a recent address fires onAddressSelected', (
+      tester,
+    ) async {
       final address = buildAddress(displayName: 'Recent A');
       SharedPreferences.setMockInitialValues({
         _storageKey: json.encode([address.toJson()]),
@@ -112,8 +115,9 @@ void main() {
       expect(selected?.displayName, address.displayName);
     });
 
-    testWidgets('shows loading indicator while location is fetching',
-        (tester) async {
+    testWidgets('shows loading indicator while location is fetching', (
+      tester,
+    ) async {
       // The geolocator mock answers instantly, but we can observe the
       // isLoading state by verifying the spinner disappears after settle.
       await tester.pumpWidget(
@@ -130,8 +134,9 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsNothing);
     });
 
-    testWidgets('shows error alert when location is permanently denied',
-        (tester) async {
+    testWidgets('shows error alert when location is permanently denied', (
+      tester,
+    ) async {
       installGeolocatorMock(
         serviceEnabled: true,
         checkPermission: LocationPermission.deniedForever,
@@ -160,8 +165,9 @@ void main() {
       when(() => mockService.supportsAutocomplete).thenReturn(false);
     });
 
-    testWidgets('shows search results when service returns addresses',
-        (tester) async {
+    testWidgets('shows search results when service returns addresses', (
+      tester,
+    ) async {
       const result = GeocodingResult(
         placeId: '1',
         displayName: '123 Main St, Springfield',
@@ -200,8 +206,9 @@ void main() {
       expect(find.byType(AddressTile), findsOneWidget);
     });
 
-    testWidgets('shows loading indicator while search is in progress',
-        (tester) async {
+    testWidgets('shows loading indicator while search is in progress', (
+      tester,
+    ) async {
       // Delay the response so the loading state is observable.
       when(
         () => mockService.search(
@@ -267,8 +274,9 @@ void main() {
       expect(find.text('Search failed. Please try again.'), findsOneWidget);
     });
 
-    testWidgets('shows "No results found" when search returns empty list',
-        (tester) async {
+    testWidgets('shows "No results found" when search returns empty list', (
+      tester,
+    ) async {
       when(
         () => mockService.search(
           any(),
@@ -299,8 +307,9 @@ void main() {
       expect(find.text('No results found'), findsOneWidget);
     });
 
-    testWidgets('tapping a search result fires onAddressSelected',
-        (tester) async {
+    testWidgets('tapping a search result fires onAddressSelected', (
+      tester,
+    ) async {
       const result = GeocodingResult(
         placeId: '42',
         displayName: '99 Oak Ave, Portland',
@@ -345,8 +354,9 @@ void main() {
   });
 
   group('SearchScreen — search bar', () {
-    testWidgets('clear button appears when text is entered and clears on tap',
-        (tester) async {
+    testWidgets('clear button appears when text is entered and clears on tap', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         buildSearchScreen(onAddressSelected: (_) {}, onPickOnMap: () {}),
       );

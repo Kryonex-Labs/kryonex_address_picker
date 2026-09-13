@@ -92,7 +92,7 @@ class GooglePlacesService implements GeocodingService {
                 as Map<String, dynamic>?;
         final secondaryText =
             (pred['structuredFormat']
-                as Map<String, dynamic>?)?['secondaryText']
+                    as Map<String, dynamic>?)?['secondaryText']
                 as Map<String, dynamic>?;
         final fullText =
             (pred['text'] as Map<String, dynamic>?)?['text'] as String? ?? '';
@@ -112,9 +112,8 @@ class GooglePlacesService implements GeocodingService {
   @override
   Future<GeocodingResult?> placeDetails(String placeId) async {
     try {
-      final uri = Uri.parse(
-        '$_placesBaseUrl/$placeId',
-      ).replace(queryParameters: {'sessionToken': _sessionToken});
+      final uri = Uri.parse('$_placesBaseUrl/$placeId')
+          .replace(queryParameters: {'sessionToken': _sessionToken});
 
       final response = await _client.get(
         uri,
@@ -174,7 +173,9 @@ class GooglePlacesService implements GeocodingService {
       final uri = Uri.parse(_geocodingBaseUrl).replace(queryParameters: params);
 
       final response = await _client.get(uri);
-      debugPrint('[AddressPicker] GooglePlaces.search.result: ${response.body}');
+      debugPrint(
+        '[AddressPicker] GooglePlaces.search.result: ${response.body}',
+      );
 
       if (response.statusCode != 200) {
         throw http.ClientException(
@@ -195,8 +196,7 @@ class GooglePlacesService implements GeocodingService {
       return results
           .take(limit)
           .map(
-            (e) =>
-                GeocodingResult.fromGoogleResult(e as Map<String, dynamic>),
+            (e) => GeocodingResult.fromGoogleResult(e as Map<String, dynamic>),
           )
           .toList();
     } catch (e, trace) {

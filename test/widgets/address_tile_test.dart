@@ -7,8 +7,9 @@ import '../_support/test_app.dart';
 
 void main() {
   group('AddressTile', () {
-    testWidgets('renders the address lines and a location icon',
-        (tester) async {
+    testWidgets('renders the address lines and a location icon', (
+      tester,
+    ) async {
       final address = buildAddress();
       await tester.pumpWidget(
         wrapForTest(AddressTile(address: address, onTap: () {})),

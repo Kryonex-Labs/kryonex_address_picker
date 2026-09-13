@@ -101,20 +101,23 @@ void main() {
     });
 
     group('equality', () {
-      test('equal when displayName and latLng match (ignores other fields)', () {
-        const a = StructuredAddress(
-          displayName: 'X',
-          latLng: LatLng(1, 2),
-          city: 'A',
-        );
-        const b = StructuredAddress(
-          displayName: 'X',
-          latLng: LatLng(1, 2),
-          city: 'B',
-        );
-        expect(a, equals(b));
-        expect(a.hashCode, b.hashCode);
-      });
+      test(
+        'equal when displayName and latLng match (ignores other fields)',
+        () {
+          const a = StructuredAddress(
+            displayName: 'X',
+            latLng: LatLng(1, 2),
+            city: 'A',
+          );
+          const b = StructuredAddress(
+            displayName: 'X',
+            latLng: LatLng(1, 2),
+            city: 'B',
+          );
+          expect(a, equals(b));
+          expect(a.hashCode, b.hashCode);
+        },
+      );
 
       test('not equal when latLng differs', () {
         const a = StructuredAddress(displayName: 'X', latLng: LatLng(1, 2));

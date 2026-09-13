@@ -41,8 +41,9 @@ void main() {
       expect(find.text(buildAddress().primaryLine), findsOneWidget);
     });
 
-    testWidgets('renders one text field per spec in detailFields',
-        (tester) async {
+    testWidgets('renders one text field per spec in detailFields', (
+      tester,
+    ) async {
       await pumpSheet(
         tester,
         fields: [AddressFieldSpec.apt, AddressFieldSpec.floor],
@@ -53,70 +54,73 @@ void main() {
       expect(find.text(AddressFieldSpec.deliveryNotes.label), findsNothing);
     });
 
-    testWidgets('save button pops with AddressDetails containing entered values',
-        (tester) async {
-      AddressDetails? saved;
-      final address = buildAddress();
+    testWidgets(
+      'save button pops with AddressDetails containing entered values',
+      (tester) async {
+        AddressDetails? saved;
+        final address = buildAddress();
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: Builder(
-              builder: (context) => ElevatedButton(
-                onPressed: () async {
-                  saved = await showModalBottomSheet<AddressDetails>(
-                    context: context,
-                    isScrollControlled: true,
-                    builder: (_) => AddressDetailSheet(
-                      config: const AddressPickerConfig(),
-                      address: address,
-                      detailFields: const [AddressFieldSpec.apt],
-                    ),
-                  );
-                },
-                child: const Text('open'),
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: Builder(
+                builder: (context) => ElevatedButton(
+                  onPressed: () async {
+                    saved = await showModalBottomSheet<AddressDetails>(
+                      context: context,
+                      isScrollControlled: true,
+                      builder: (_) => AddressDetailSheet(
+                        config: const AddressPickerConfig(),
+                        address: address,
+                        detailFields: const [AddressFieldSpec.apt],
+                      ),
+                    );
+                  },
+                  child: const Text('open'),
+                ),
               ),
             ),
           ),
-        ),
-      );
+        );
 
-      // Open the sheet.
-      await tester.tap(find.text('open'));
-      await tester.pumpAndSettle();
+        // Open the sheet.
+        await tester.tap(find.text('open'));
+        await tester.pumpAndSettle();
 
-      // Enter a value in the apt field.
-      await tester.enterText(find.byType(EditableText).first, '4B');
-      await tester.pumpAndSettle();
+        // Enter a value in the apt field.
+        await tester.enterText(find.byType(EditableText).first, '4B');
+        await tester.pumpAndSettle();
 
-      // Tap save.
-      await tester.tap(find.text('Save address'));
-      await tester.pumpAndSettle();
+        // Tap save.
+        await tester.tap(find.text('Save address'));
+        await tester.pumpAndSettle();
 
-      expect(saved?.apt, '4B');
-    });
+        expect(saved?.apt, '4B');
+      },
+    );
 
-    testWidgets('prefillFrom pre-populates the field with the address attribute',
-        (tester) async {
-      await pumpSheet(
-        tester,
-        fields: const [
-          AddressFieldSpec(
-            key: 'city',
-            label: 'City',
-            prefillFrom: AddressAttribute.city,
-          ),
-          AddressFieldSpec.postalCode,
-        ],
-      );
+    testWidgets(
+      'prefillFrom pre-populates the field with the address attribute',
+      (tester) async {
+        await pumpSheet(
+          tester,
+          fields: const [
+            AddressFieldSpec(
+              key: 'city',
+              label: 'City',
+              prefillFrom: AddressAttribute.city,
+            ),
+            AddressFieldSpec.postalCode,
+          ],
+        );
 
-      final address = buildAddress();
-      expect(find.text(address.city!), findsOneWidget);
-      expect(find.text(address.postalCode!), findsOneWidget);
-    });
+        final address = buildAddress();
+        expect(find.text(address.city!), findsOneWidget);
+        expect(find.text(address.postalCode!), findsOneWidget);
+      },
+    );
 
-    testWidgets('prefilled values are returned on save',
-        (tester) async {
+    testWidgets('prefilled values are returned on save', (tester) async {
       AddressDetails? saved;
       final address = buildAddress();
 
@@ -152,8 +156,9 @@ void main() {
       expect(saved?['postalCode'], address.postalCode);
     });
 
-    testWidgets('save with empty field leaves that key absent from values',
-        (tester) async {
+    testWidgets('save with empty field leaves that key absent from values', (
+      tester,
+    ) async {
       AddressDetails? saved;
       final address = buildAddress();
 
@@ -194,8 +199,9 @@ void main() {
       expect(saved?.isEmpty, isTrue);
     });
 
-    testWidgets('blocks save and shows error when required field is empty',
-        (tester) async {
+    testWidgets('blocks save and shows error when required field is empty', (
+      tester,
+    ) async {
       AddressDetails? saved;
       final address = buildAddress();
 
@@ -243,8 +249,9 @@ void main() {
       expect(saved, isNull);
     });
 
-    testWidgets('validation error clears when user types into the field',
-        (tester) async {
+    testWidgets('validation error clears when user types into the field', (
+      tester,
+    ) async {
       final address = buildAddress();
 
       await tester.pumpWidget(
@@ -291,8 +298,9 @@ void main() {
       expect(find.text('Gate Code is required'), findsNothing);
     });
 
-    testWidgets('quick-fill chips are rendered and fill the field on tap',
-        (tester) async {
+    testWidgets('quick-fill chips are rendered and fill the field on tap', (
+      tester,
+    ) async {
       AddressDetails? saved;
       final address = buildAddress();
 
@@ -343,8 +351,9 @@ void main() {
       expect(saved?['building'], 'Tower A');
     });
 
-    testWidgets('renders subtitle when config provides detailSheetSubtitle',
-        (tester) async {
+    testWidgets('renders subtitle when config provides detailSheetSubtitle', (
+      tester,
+    ) async {
       await pumpSheet(
         tester,
         config: const AddressPickerConfig(

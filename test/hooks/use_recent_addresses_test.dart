@@ -46,10 +46,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(captured!.addresses, hasLength(1));
-      expect(
-        captured!.addresses.first.displayName,
-        buildAddress().displayName,
-      );
+      expect(captured!.addresses.first.displayName, buildAddress().displayName);
     });
 
     testWidgets('clear removes all addresses', (tester) async {

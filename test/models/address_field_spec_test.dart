@@ -46,7 +46,9 @@ void main() {
         label: 'ZIP',
         validator: (v) {
           final trimmed = v?.trim() ?? '';
-          if (trimmed.isNotEmpty && trimmed.length != 5) return 'Must be 5 digits';
+          if (trimmed.isNotEmpty && trimmed.length != 5) {
+            return 'Must be 5 digits';
+          }
           return null;
         },
       );

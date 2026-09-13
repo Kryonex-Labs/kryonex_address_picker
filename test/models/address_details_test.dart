@@ -17,7 +17,11 @@ void main() {
     });
 
     test('named constructor sets built-in getters', () {
-      final d = AddressDetails(apt: '4B', floor: '3', deliveryNotes: 'ring bell');
+      final d = AddressDetails(
+        apt: '4B',
+        floor: '3',
+        deliveryNotes: 'ring bell',
+      );
       expect(d.apt, '4B');
       expect(d.floor, '3');
       expect(d.deliveryNotes, 'ring bell');

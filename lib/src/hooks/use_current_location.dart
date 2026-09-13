@@ -58,8 +58,10 @@ CurrentLocationState useCurrentLocation() {
         debugPrint('Location services disabled.');
         return (
           location: null,
-          error: fail('Location services are disabled. '
-              'Please enable them in Settings.'),
+          error: fail(
+            'Location services are disabled. '
+            'Please enable them in Settings.',
+          ),
         );
       }
 
@@ -77,8 +79,10 @@ CurrentLocationState useCurrentLocation() {
         debugPrint('Location permission permanently denied.');
         return (
           location: null,
-          error: fail('Location permission permanently denied. '
-              'Please enable it in Settings.'),
+          error: fail(
+            'Location permission permanently denied. '
+            'Please enable it in Settings.',
+          ),
         );
       }
 
@@ -96,10 +100,7 @@ CurrentLocationState useCurrentLocation() {
       return (location: resolved, error: null);
     } catch (e) {
       debugPrint('Error fetching location: $e');
-      return (
-        location: null,
-        error: fail('Failed to get current location.'),
-      );
+      return (location: null, error: fail('Failed to get current location.'));
     }
   }
 

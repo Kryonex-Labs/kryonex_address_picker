@@ -90,17 +90,17 @@ class StructuredAddress {
 
   /// Serializes to JSON map for local persistence.
   Map<String, dynamic> toJson() => {
-        'displayName': displayName,
-        'latitude': latLng.latitude,
-        'longitude': latLng.longitude,
-        'street': street,
-        'houseNumber': houseNumber,
-        'city': city,
-        'state': state,
-        'postalCode': postalCode,
-        'country': country,
-        'countryCode': countryCode,
-      };
+    'displayName': displayName,
+    'latitude': latLng.latitude,
+    'longitude': latLng.longitude,
+    'street': street,
+    'houseNumber': houseNumber,
+    'city': city,
+    'state': state,
+    'postalCode': postalCode,
+    'country': country,
+    'countryCode': countryCode,
+  };
 
   /// Deserializes from JSON map.
   factory StructuredAddress.fromJson(Map<String, dynamic> json) {

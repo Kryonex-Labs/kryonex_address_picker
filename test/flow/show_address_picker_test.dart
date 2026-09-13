@@ -34,8 +34,7 @@ class _HostState extends State<_Host> {
             },
             child: const Text('open'),
           ),
-          if (result != null)
-            Text('result:${result!.address.displayName}'),
+          if (result != null) Text('result:${result!.address.displayName}'),
         ],
       ),
     );
@@ -75,12 +74,11 @@ void main() {
 
   group('showAddressPicker flow', () {
     // ── dismissal ─────────────────────────────────────────────────────────────
-    testWidgets('dismissal returns null: back from SearchScreen',
-        (tester) async {
+    testWidgets('dismissal returns null: back from SearchScreen', (
+      tester,
+    ) async {
       await tester.pumpWidget(
-        buildHost(
-          config: const AddressPickerConfig(localeAwareSearch: false),
-        ),
+        buildHost(config: const AddressPickerConfig(localeAwareSearch: false)),
       );
 
       await openPicker(tester);
@@ -98,12 +96,11 @@ void main() {
     });
 
     // ── "Pick on Map" path ────────────────────────────────────────────────────
-    testWidgets('"Pick on Map" navigates to MapConfirmScreen without address',
-        (tester) async {
+    testWidgets('"Pick on Map" navigates to MapConfirmScreen without address', (
+      tester,
+    ) async {
       await tester.pumpWidget(
-        buildHost(
-          config: const AddressPickerConfig(localeAwareSearch: false),
-        ),
+        buildHost(config: const AddressPickerConfig(localeAwareSearch: false)),
       );
 
       await openPicker(tester);
@@ -113,10 +110,7 @@ void main() {
       await advance(tester); // drain ForUI timer + navigation animation
 
       expect(find.text('Confirm Location'), findsOneWidget);
-      expect(
-        find.text('Tap on the map to select a location'),
-        findsOneWidget,
-      );
+      expect(find.text('Tap on the map to select a location'), findsOneWidget);
 
       // Drain any remaining flutter_map timers.
       await advance(tester);
@@ -124,82 +118,86 @@ void main() {
 
     // ── select from recents + map confirm (no detail screen) ─────────────────
     testWidgets(
-        'select recent → map confirm → returns SelectedAddress (no details)',
-        (tester) async {
-      final address = buildAddress(displayName: 'Saved Place');
-      SharedPreferences.setMockInitialValues({
-        'kryonex_recent_addresses': json.encode([address.toJson()]),
-      });
+      'select recent → map confirm → returns SelectedAddress (no details)',
+      (tester) async {
+        final address = buildAddress(displayName: 'Saved Place');
+        SharedPreferences.setMockInitialValues({
+          'kryonex_recent_addresses': json.encode([address.toJson()]),
+        });
 
-      await tester.pumpWidget(
-        buildHost(
-          config: const AddressPickerConfig(
-            showDetailScreen: false,
-            localeAwareSearch: false,
+        await tester.pumpWidget(
+          buildHost(
+            config: const AddressPickerConfig(
+              showDetailScreen: false,
+              localeAwareSearch: false,
+            ),
           ),
-        ),
-      );
+        );
 
-      // Open → SearchScreen.
-      await openPicker(tester);
-      await tester.pump(); // load recents
+        // Open → SearchScreen.
+        await openPicker(tester);
+        await tester.pump(); // load recents
 
-      // Wait for recents to load from SharedPreferences.
-      await advance(tester);
+        // Wait for recents to load from SharedPreferences.
+        await advance(tester);
 
-      // Tap the recent address tile.
-      expect(find.text(address.primaryLine), findsOneWidget);
-      await tester.tap(find.text(address.primaryLine));
-      await advance(tester); // drain ForUI timer + navigate to MapConfirmScreen
+        // Tap the recent address tile.
+        expect(find.text(address.primaryLine), findsOneWidget);
+        await tester.tap(find.text(address.primaryLine));
+        await advance(
+          tester,
+        ); // drain ForUI timer + navigate to MapConfirmScreen
 
-      expect(find.text('Confirm Location'), findsOneWidget);
+        expect(find.text('Confirm Location'), findsOneWidget);
 
-      // Tap confirm.
-      await tester.tap(find.text('Confirm Address'));
-      await advance(tester); // drain ForUI timer + async _onMapConfirmed
+        // Tap confirm.
+        await tester.tap(find.text('Confirm Address'));
+        await advance(tester); // drain ForUI timer + async _onMapConfirmed
 
-      // showDetailScreen=false → result returned immediately.
-      await advance(tester); // ensure host state updates
-      expect(find.text('result:${address.displayName}'), findsOneWidget);
-    });
+        // showDetailScreen=false → result returned immediately.
+        await advance(tester); // ensure host state updates
+        expect(find.text('result:${address.displayName}'), findsOneWidget);
+      },
+    );
 
     // ── select from recents + map confirm + detail sheet ─────────────────────
     testWidgets(
-        'select recent → map confirm → detail sheet → save → returns result',
-        (tester) async {
-      final address = buildAddress(displayName: 'Place With Details');
-      SharedPreferences.setMockInitialValues({
-        'kryonex_recent_addresses': json.encode([address.toJson()]),
-      });
+      'select recent → map confirm → detail sheet → save → returns result',
+      (tester) async {
+        final address = buildAddress(displayName: 'Place With Details');
+        SharedPreferences.setMockInitialValues({
+          'kryonex_recent_addresses': json.encode([address.toJson()]),
+        });
 
-      await tester.pumpWidget(
-        buildHost(
-          config: const AddressPickerConfig(
-            showDetailScreen: true,
-            localeAwareSearch: false,
+        await tester.pumpWidget(
+          buildHost(
+            config: const AddressPickerConfig(
+              showDetailScreen: true,
+              localeAwareSearch: false,
+            ),
           ),
-        ),
-      );
+        );
 
-      await openPicker(tester);
-      await advance(tester); // load recents
+        await openPicker(tester);
+        await advance(tester); // load recents
 
-      await tester.tap(find.text(address.primaryLine));
-      await advance(tester); // navigate to MapConfirmScreen
+        await tester.tap(find.text(address.primaryLine));
+        await advance(tester); // navigate to MapConfirmScreen
 
-      expect(find.text('Confirm Location'), findsOneWidget);
+        expect(find.text('Confirm Location'), findsOneWidget);
 
-      await tester.tap(find.text('Confirm Address'));
-      await advance(tester); // _onMapConfirmed fires sheet
+        await tester.tap(find.text('Confirm Address'));
+        await advance(tester); // _onMapConfirmed fires sheet
 
-      // Detail sheet slides up.
-      expect(find.text('Save address'), findsOneWidget);
+        // Detail sheet slides up.
+        expect(find.text('Save address'), findsOneWidget);
 
-      await tester.tap(find.text('Save address'));
-      await advance(tester); // sheet dismissed, result returned
-      await advance(tester); // host rebuild
+        await tester.tap(find.text('Save address'));
+        await advance(tester); // sheet dismissed, result returned
+        await advance(tester); // host rebuild
 
-      expect(find.text('result:${address.displayName}'), findsOneWidget);
-    });
+        expect(find.text('result:${address.displayName}'), findsOneWidget);
+      },
+    );
   });
 }

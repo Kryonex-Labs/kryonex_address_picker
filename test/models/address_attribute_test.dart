@@ -15,7 +15,10 @@ void main() {
     });
 
     test('street returns the street name', () {
-      expect(address.readAttribute(AddressAttribute.street), 'Mahatma Gandhi Road');
+      expect(
+        address.readAttribute(AddressAttribute.street),
+        'Mahatma Gandhi Road',
+      );
     });
 
     test('houseNumber returns the building number', () {

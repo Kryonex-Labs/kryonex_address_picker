@@ -39,16 +39,15 @@ void main() {
         body: any(named: 'body'),
       ),
     ).thenAnswer((invocation) async {
-      lastPostBody =
-          invocation.namedArguments[const Symbol('body')] as String?;
+      lastPostBody = invocation.namedArguments[const Symbol('body')] as String?;
       return response;
     });
   }
 
   Uri capturedGetUri() {
-    final captured =
-        verify(() => client.get(captureAny(), headers: any(named: 'headers')))
-            .captured;
+    final captured = verify(
+      () => client.get(captureAny(), headers: any(named: 'headers')),
+    ).captured;
     return captured.last as Uri;
   }
 
@@ -66,18 +65,20 @@ void main() {
   // ── autocomplete ──────────────────────────────────────────────────────────
 
   group('GooglePlacesService.autocomplete', () {
-    test('returns [] without hitting the network for empty/blank query',
-        () async {
-      expect(await service.autocomplete(''), isEmpty);
-      expect(await service.autocomplete('   '), isEmpty);
-      verifyNever(
-        () => client.post(
-          any(),
-          headers: any(named: 'headers'),
-          body: any(named: 'body'),
-        ),
-      );
-    });
+    test(
+      'returns [] without hitting the network for empty/blank query',
+      () async {
+        expect(await service.autocomplete(''), isEmpty);
+        expect(await service.autocomplete('   '), isEmpty);
+        verifyNever(
+          () => client.post(
+            any(),
+            headers: any(named: 'headers'),
+            body: any(named: 'body'),
+          ),
+        );
+      },
+    );
 
     test('parses placeId, mainText, secondaryText, and fullText', () async {
       stubPost(httpResponse(placesAutocompleteBody()));
@@ -92,32 +93,42 @@ void main() {
     });
 
     test('falls back to empty string when secondaryText is absent', () async {
-      stubPost(httpResponse(
-        json.encode({'suggestions': [placeSuggestionNoSecondary]}),
-      ));
+      stubPost(
+        httpResponse(
+          json.encode({
+            'suggestions': [placeSuggestionNoSecondary],
+          }),
+        ),
+      );
 
       final results = await service.autocomplete('MG Road');
 
       expect(results.single.secondaryText, isEmpty);
     });
 
-    test('falls back to fullText for mainText when structuredFormat is absent',
-        () async {
-      const noFormat = {
-        'placePrediction': {
-          'placeId': 'no-format-id',
-          'text': {'text': 'Full Text Only'},
-          // structuredFormat absent
-        },
-      };
-      stubPost(httpResponse(json.encode({
-        'suggestions': [noFormat],
-      })));
+    test(
+      'falls back to fullText for mainText when structuredFormat is absent',
+      () async {
+        const noFormat = {
+          'placePrediction': {
+            'placeId': 'no-format-id',
+            'text': {'text': 'Full Text Only'},
+            // structuredFormat absent
+          },
+        };
+        stubPost(
+          httpResponse(
+            json.encode({
+              'suggestions': [noFormat],
+            }),
+          ),
+        );
 
-      final results = await service.autocomplete('anything');
+        final results = await service.autocomplete('anything');
 
-      expect(results.single.mainText, 'Full Text Only');
-    });
+        expect(results.single.mainText, 'Full Text Only');
+      },
+    );
 
     test('returns [] when suggestions key is absent or empty', () async {
       stubPost(httpResponse(placesEmptyAutocompleteBody()));
@@ -127,15 +138,18 @@ void main() {
     test('respects the limit parameter', () async {
       // Build response with 3 suggestions.
       final body = json.encode({
-        'suggestions': List.generate(3, (i) => {
-              'placePrediction': {
-                'placeId': 'id$i',
-                'text': {'text': 'Place $i'},
-                'structuredFormat': {
-                  'mainText': {'text': 'Place $i'},
-                },
+        'suggestions': List.generate(
+          3,
+          (i) => {
+            'placePrediction': {
+              'placeId': 'id$i',
+              'text': {'text': 'Place $i'},
+              'structuredFormat': {
+                'mainText': {'text': 'Place $i'},
               },
-            }),
+            },
+          },
+        ),
       });
       stubPost(httpResponse(body));
 
@@ -232,15 +246,19 @@ void main() {
       expect(result.lon, closeTo(-0.1278, 1e-9));
     });
 
-    test('returns a GeocodingResult with correct placeId and address',
-        () async {
-      stubGet(httpResponse(placeDetailsBody()));
+    test(
+      'returns a GeocodingResult with correct placeId and address',
+      () async {
+        stubGet(httpResponse(placeDetailsBody()));
 
-      final result = await service.placeDetails('ChIJdd4hrwug2EcRmSrV3Vo6llI');
+        final result = await service.placeDetails(
+          'ChIJdd4hrwug2EcRmSrV3Vo6llI',
+        );
 
-      expect(result!.placeId, 'ChIJdd4hrwug2EcRmSrV3Vo6llI');
-      expect(result.displayName, contains('1 Main Street'));
-    });
+        expect(result!.placeId, 'ChIJdd4hrwug2EcRmSrV3Vo6llI');
+        expect(result.displayName, contains('1 Main Street'));
+      },
+    );
 
     test('resets sessionToken after a successful call', () async {
       stubGet(httpResponse(placeDetailsBody()));
@@ -253,10 +271,8 @@ void main() {
         () => client.get(captureAny(), headers: any(named: 'headers')),
       ).captured;
       expect(captured, hasLength(2));
-      final token1 =
-          (captured[0] as Uri).queryParameters['sessionToken'];
-      final token2 =
-          (captured[1] as Uri).queryParameters['sessionToken'];
+      final token1 = (captured[0] as Uri).queryParameters['sessionToken'];
+      final token2 = (captured[1] as Uri).queryParameters['sessionToken'];
       expect(token1, isNotEmpty);
       expect(token2, isNotEmpty);
       expect(token1, isNot(equals(token2)));
@@ -295,14 +311,14 @@ void main() {
   // ── search (Google Geocoding API) ─────────────────────────────────────────
 
   group('GooglePlacesService.search', () {
-    test('returns [] without hitting the network for empty/blank query',
-        () async {
-      expect(await service.search(''), isEmpty);
-      expect(await service.search('   '), isEmpty);
-      verifyNever(
-        () => client.get(any(), headers: any(named: 'headers')),
-      );
-    });
+    test(
+      'returns [] without hitting the network for empty/blank query',
+      () async {
+        expect(await service.search(''), isEmpty);
+        expect(await service.search('   '), isEmpty);
+        verifyNever(() => client.get(any(), headers: any(named: 'headers')));
+      },
+    );
 
     test('parses results into GeocodingResults', () async {
       stubGet(httpResponse(googleSearchBody()));
@@ -341,10 +357,7 @@ void main() {
 
       await service.search('cafe');
 
-      expect(
-        capturedGetUri().queryParameters.containsKey('language'),
-        isFalse,
-      );
+      expect(capturedGetUri().queryParameters.containsKey('language'), isFalse);
     });
 
     test('formats country codes as pipe-separated components param', () async {
@@ -394,21 +407,23 @@ void main() {
       );
     });
 
-    test('throws ClientException on API error status (REQUEST_DENIED)',
-        () async {
-      stubGet(httpResponse(googleErrorBody('REQUEST_DENIED')));
+    test(
+      'throws ClientException on API error status (REQUEST_DENIED)',
+      () async {
+        stubGet(httpResponse(googleErrorBody('REQUEST_DENIED')));
 
-      expect(
-        () => service.search('cafe'),
-        throwsA(
-          isA<http.ClientException>().having(
-            (e) => e.message,
-            'message',
-            contains('REQUEST_DENIED'),
+        expect(
+          () => service.search('cafe'),
+          throwsA(
+            isA<http.ClientException>().having(
+              (e) => e.message,
+              'message',
+              contains('REQUEST_DENIED'),
+            ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
   });
 
   // ── reverse ───────────────────────────────────────────────────────────────
@@ -453,10 +468,7 @@ void main() {
     test('throws ClientException on non-200 HTTP status', () {
       stubGet(httpResponse('error', status: 403));
 
-      expect(
-        () => service.reverse(0, 0),
-        throwsA(isA<http.ClientException>()),
-      );
+      expect(() => service.reverse(0, 0), throwsA(isA<http.ClientException>()));
     });
   });
 

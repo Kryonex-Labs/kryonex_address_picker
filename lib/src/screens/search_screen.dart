@@ -61,8 +61,10 @@ class SearchScreen extends HookWidget {
       return locale.languageCode;
     }, []);
 
-    final geocodingService =
-        useMemoized(() => config.createGeocodingService(), [config]);
+    final geocodingService = useMemoized(
+      () => config.createGeocodingService(),
+      [config],
+    );
 
     // Dispose service on unmount (skip if caller-provided via config.geocodingService).
     useEffect(() {
@@ -289,9 +291,9 @@ class SearchScreen extends HookWidget {
                     final result = await locationState.fetch();
                     if (result.error != null) {
                       if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(result.error!)),
-                        );
+                        ScaffoldMessenger.of(
+                          context,
+                        ).showSnackBar(SnackBar(content: Text(result.error!)));
                       }
                     } else if (result.location != null) {
                       onCurrentLocation(result.location!);
@@ -302,9 +304,7 @@ class SearchScreen extends HookWidget {
               decoration: BoxDecoration(
                 color: colors.muted.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: colors.border.withValues(alpha: 0.5),
-                ),
+                border: Border.all(color: colors.border.withValues(alpha: 0.5)),
               ),
               child: Row(
                 children: [
@@ -373,9 +373,7 @@ class SearchScreen extends HookWidget {
 
         // Pick on Map fallback
         DecoratedBox(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-          ),
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(14)),
           child: FButton(
             variant: .outline,
             onPress: onPickOnMap,
@@ -469,7 +467,8 @@ class _SearchBarState extends State<_SearchBar>
             color: widget.colors.muted.withValues(alpha: 0.5),
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: _borderColor.value ??
+              color:
+                  _borderColor.value ??
                   widget.colors.border.withValues(alpha: 0.5),
               width: _focusNode.hasFocus ? 1.5 : 1,
             ),
@@ -522,8 +521,9 @@ class _SearchBarState extends State<_SearchBar>
                       width: 18,
                       height: 18,
                       decoration: BoxDecoration(
-                        color: widget.colors.mutedForeground
-                            .withValues(alpha: 0.25),
+                        color: widget.colors.mutedForeground.withValues(
+                          alpha: 0.25,
+                        ),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(

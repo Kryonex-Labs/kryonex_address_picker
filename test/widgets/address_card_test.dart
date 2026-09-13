@@ -7,8 +7,9 @@ import '../_support/test_app.dart';
 
 void main() {
   group('AddressCard', () {
-    testWidgets('renders primary and secondary lines for an address',
-        (tester) async {
+    testWidgets('renders primary and secondary lines for an address', (
+      tester,
+    ) async {
       final address = buildAddress();
       await tester.pumpWidget(wrapForTest(AddressCard(address: address)));
 
@@ -24,11 +25,10 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
 
-    testWidgets('shows placeholder when address is null and not loading',
-        (tester) async {
-      await tester.pumpWidget(
-        wrapForTest(const AddressCard(address: null)),
-      );
+    testWidgets('shows placeholder when address is null and not loading', (
+      tester,
+    ) async {
+      await tester.pumpWidget(wrapForTest(const AddressCard(address: null)));
 
       expect(find.text('Tap on the map to select a location'), findsOneWidget);
     });

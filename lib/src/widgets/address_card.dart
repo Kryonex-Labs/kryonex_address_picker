@@ -8,11 +8,7 @@ import '../models/structured_address.dart';
 /// Used on the map confirmation screen as an overlay showing the
 /// currently selected address.
 class AddressCard extends StatelessWidget {
-  const AddressCard({
-    super.key,
-    required this.address,
-    this.isLoading = false,
-  });
+  const AddressCard({super.key, required this.address, this.isLoading = false});
 
   /// The address to display.
   final StructuredAddress? address;

@@ -8,11 +8,7 @@ import '../models/structured_address.dart';
 /// Shows a location icon prefix, primary address line as title,
 /// and city/state/zip as subtitle.
 class AddressTile extends StatelessWidget {
-  const AddressTile({
-    super.key,
-    required this.address,
-    required this.onTap,
-  });
+  const AddressTile({super.key, required this.address, required this.onTap});
 
   /// The address to display.
   final StructuredAddress address;

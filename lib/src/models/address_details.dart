@@ -14,15 +14,12 @@ class AddressDetails {
   /// Convenience constructor for the three built-in fields.
   ///
   /// Prefer [AddressDetails.fromValues] for custom field sets.
-  AddressDetails({
-    String? apt,
-    String? floor,
-    String? deliveryNotes,
-  }) : values = {
-          if (apt != null) 'apt': apt,
-          if (floor != null) 'floor': floor,
-          if (deliveryNotes != null) 'deliveryNotes': deliveryNotes,
-        };
+  AddressDetails({String? apt, String? floor, String? deliveryNotes})
+    : values = {
+        if (apt != null) 'apt': apt,
+        if (floor != null) 'floor': floor,
+        if (deliveryNotes != null) 'deliveryNotes': deliveryNotes,
+      };
 
   /// All collected field values, keyed by [AddressFieldSpec.key].
   ///

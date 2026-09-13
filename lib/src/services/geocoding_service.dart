@@ -46,8 +46,7 @@ abstract class GeocodingService {
     String input, {
     String? lang,
     int limit = 5,
-  }) async =>
-      const [];
+  }) async => const [];
 
   /// Resolve a [placeId] (from a [PlacePrediction]) into a [GeocodingResult]
   /// with full coordinates and structured address components.

@@ -29,12 +29,14 @@ void main() {
   }
 
   group('GoogleGeocodingService.search', () {
-    test('returns [] without hitting the network for empty/blank query',
-        () async {
-      expect(await service.search(''), isEmpty);
-      expect(await service.search('   '), isEmpty);
-      verifyNever(() => client.get(any()));
-    });
+    test(
+      'returns [] without hitting the network for empty/blank query',
+      () async {
+        expect(await service.search(''), isEmpty);
+        expect(await service.search('   '), isEmpty);
+        verifyNever(() => client.get(any()));
+      },
+    );
 
     test('parses results into GeocodingResults', () async {
       stubGet(httpResponse(googleSearchBody()));
@@ -73,10 +75,7 @@ void main() {
 
       await service.search('cafe');
 
-      expect(
-        capturedUri().queryParameters.containsKey('language'),
-        isFalse,
-      );
+      expect(capturedUri().queryParameters.containsKey('language'), isFalse);
     });
 
     test('formats country codes as pipe-separated components param', () async {
@@ -95,10 +94,7 @@ void main() {
 
       await service.search('cafe');
 
-      expect(
-        capturedUri().queryParameters.containsKey('components'),
-        isFalse,
-      );
+      expect(capturedUri().queryParameters.containsKey('components'), isFalse);
     });
 
     test('returns [] for ZERO_RESULTS status', () async {
@@ -109,7 +105,8 @@ void main() {
 
     test('limits results to the limit parameter', () async {
       // Build a response with 3 results.
-      final body = '{"status":"OK","results":[${List.filled(3, '{"place_id":"a","formatted_address":"A","geometry":{"location":{"lat":0,"lng":0}},"address_components":[]}').join(',')}]}';
+      final body =
+          '{"status":"OK","results":[${List.filled(3, '{"place_id":"a","formatted_address":"A","geometry":{"location":{"lat":0,"lng":0}},"address_components":[]}').join(',')}]}';
       stubGet(httpResponse(body));
 
       final results = await service.search('query', limit: 2);
@@ -126,21 +123,23 @@ void main() {
       );
     });
 
-    test('throws ClientException on API error status (e.g. REQUEST_DENIED)',
-        () async {
-      stubGet(httpResponse(googleErrorBody('REQUEST_DENIED')));
+    test(
+      'throws ClientException on API error status (e.g. REQUEST_DENIED)',
+      () async {
+        stubGet(httpResponse(googleErrorBody('REQUEST_DENIED')));
 
-      expect(
-        () => service.search('cafe'),
-        throwsA(
-          isA<http.ClientException>().having(
-            (e) => e.message,
-            'message',
-            contains('REQUEST_DENIED'),
+        expect(
+          () => service.search('cafe'),
+          throwsA(
+            isA<http.ClientException>().having(
+              (e) => e.message,
+              'message',
+              contains('REQUEST_DENIED'),
+            ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
 
     test('throws on OVER_QUERY_LIMIT status', () async {
       stubGet(httpResponse(googleErrorBody('OVER_QUERY_LIMIT')));
@@ -193,10 +192,7 @@ void main() {
     test('throws ClientException on non-200 HTTP status', () async {
       stubGet(httpResponse('error', status: 403));
 
-      expect(
-        () => service.reverse(0, 0),
-        throwsA(isA<http.ClientException>()),
-      );
+      expect(() => service.reverse(0, 0), throwsA(isA<http.ClientException>()));
     });
   });
 

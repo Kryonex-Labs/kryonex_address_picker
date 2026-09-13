@@ -77,8 +77,7 @@ class GoogleGeocodingService implements GeocodingService {
       return results
           .take(limit)
           .map(
-            (e) =>
-                GeocodingResult.fromGoogleResult(e as Map<String, dynamic>),
+            (e) => GeocodingResult.fromGoogleResult(e as Map<String, dynamic>),
           )
           .toList();
     } catch (e, trace) {

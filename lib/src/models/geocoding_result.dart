@@ -82,8 +82,9 @@ class GeocodingResult {
       if (props['state'] != null) props['state'] as String,
       if (props['country'] != null) props['country'] as String,
     ];
-    final displayName =
-        nameParts.isNotEmpty ? nameParts.join(', ') : 'Unknown location';
+    final displayName = nameParts.isNotEmpty
+        ? nameParts.join(', ')
+        : 'Unknown location';
 
     // Normalize Photon property keys to Nominatim-compatible addressParts keys
     // so that toStructuredAddress() works without modification.
@@ -98,8 +99,7 @@ class GeocodingResult {
       if (props['country'] != null) 'country': props['country'] as String,
       // Photon returns uppercase country codes (e.g. "IN"); normalise to lower.
       if (props['countrycode'] != null)
-        'country_code':
-            (props['countrycode'] as String).toLowerCase(),
+        'country_code': (props['countrycode'] as String).toLowerCase(),
     };
 
     return GeocodingResult(
@@ -187,9 +187,7 @@ class GeocodingResult {
   /// - `id` (not `place_id`)
   /// - `addressComponents[{longText, shortText, types}]`
   ///   (not `address_components[{long_name, short_name, types}]`)
-  factory GeocodingResult.fromGooglePlaceDetails(
-    Map<String, dynamic> place,
-  ) {
+  factory GeocodingResult.fromGooglePlaceDetails(Map<String, dynamic> place) {
     final locationMap = place['location'] as Map<String, dynamic>;
     final lat = (locationMap['latitude'] as num).toDouble();
     final lng = (locationMap['longitude'] as num).toDouble();

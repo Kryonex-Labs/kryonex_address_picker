@@ -53,10 +53,7 @@ ReverseGeocodeState useReverseGeocode(
 
     () async {
       try {
-        final result = await service.reverse(
-          latLng.latitude,
-          latLng.longitude,
-        );
+        final result = await service.reverse(latLng.latitude, latLng.longitude);
 
         if (cancelled) return;
 

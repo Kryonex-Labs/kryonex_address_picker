@@ -73,10 +73,7 @@ void main() {
           'type': 'Point',
           'coordinates': [10, 20],
         },
-        'properties': {
-          'name': 'Place',
-          'district': 'Old Town',
-        },
+        'properties': {'name': 'Place', 'district': 'Old Town'},
       });
 
       // district is mapped to the 'town' key, which city resolution reads.
@@ -229,8 +226,7 @@ void main() {
       );
     });
 
-    test('falls back to displayName.text when formattedAddress is absent',
-        () {
+    test('falls back to displayName.text when formattedAddress is absent', () {
       final result = GeocodingResult.fromGooglePlaceDetails(const {
         'id': 'fallback-id',
         'displayName': {'text': 'Fallback Display'},
@@ -240,9 +236,7 @@ void main() {
       expect(result.displayName, 'Fallback Display');
     });
 
-    test(
-        'uses "Unknown location" when both formattedAddress and displayName are absent',
-        () {
+    test('uses "Unknown location" when both formattedAddress and displayName are absent', () {
       final result = GeocodingResult.fromGooglePlaceDetails(const {
         'id': 'no-name-id',
         'location': {'latitude': 0.0, 'longitude': 0.0},
@@ -251,22 +245,26 @@ void main() {
       expect(result.displayName, 'Unknown location');
     });
 
-    test('maps addressComponents with longText/shortText to Nominatim keys',
-        () {
-      final result = GeocodingResult.fromGooglePlaceDetails(placeDetailsFull);
-      final addr = result.addressParts;
+    test(
+      'maps addressComponents with longText/shortText to Nominatim keys',
+      () {
+        final result = GeocodingResult.fromGooglePlaceDetails(placeDetailsFull);
+        final addr = result.addressParts;
 
-      expect(addr['house_number'], '1');      // street_number → longText
-      expect(addr['road'], 'Main Street');    // route → longText
-      expect(addr['city'], 'London');         // locality → longText
-      expect(addr['state'], 'England');       // admin_area_level_1 → longText
-      expect(addr['postcode'], 'EC1A 1BB');   // postal_code → longText
-      expect(addr['country'], 'United Kingdom'); // country → longText
-      expect(addr['country_code'], 'gb');     // shortText lowercased
-    });
+        expect(addr['house_number'], '1'); // street_number → longText
+        expect(addr['road'], 'Main Street'); // route → longText
+        expect(addr['city'], 'London'); // locality → longText
+        expect(addr['state'], 'England'); // admin_area_level_1 → longText
+        expect(addr['postcode'], 'EC1A 1BB'); // postal_code → longText
+        expect(addr['country'], 'United Kingdom'); // country → longText
+        expect(addr['country_code'], 'gb'); // shortText lowercased
+      },
+    );
 
     test('leaves addressParts empty when components list is empty', () {
-      final result = GeocodingResult.fromGooglePlaceDetails(placeDetailsMinimal);
+      final result = GeocodingResult.fromGooglePlaceDetails(
+        placeDetailsMinimal,
+      );
       expect(result.addressParts, isEmpty);
     });
 
@@ -292,9 +290,9 @@ void main() {
     });
 
     test('leaves fields null for minimal place details', () {
-      final address =
-          GeocodingResult.fromGooglePlaceDetails(placeDetailsMinimal)
-              .toStructuredAddress();
+      final address = GeocodingResult.fromGooglePlaceDetails(
+        placeDetailsMinimal,
+      ).toStructuredAddress();
 
       expect(address.houseNumber, isNull);
       expect(address.street, isNull);

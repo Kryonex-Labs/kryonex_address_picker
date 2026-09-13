@@ -7,10 +7,7 @@ import 'address_details.dart';
 /// on the detail screen. If [AddressPickerConfig.showDetailScreen] is
 /// `false`, [details] will be `null`.
 class SelectedAddress {
-  const SelectedAddress({
-    required this.address,
-    this.details,
-  });
+  const SelectedAddress({required this.address, this.details});
 
   /// The geocoded, structured address.
   final StructuredAddress address;
@@ -31,9 +28,9 @@ class SelectedAddress {
 
   /// Serializes to JSON map for local persistence.
   Map<String, dynamic> toJson() => {
-        'address': address.toJson(),
-        'details': details?.toJson(),
-      };
+    'address': address.toJson(),
+    'details': details?.toJson(),
+  };
 
   /// Deserializes from JSON map.
   factory SelectedAddress.fromJson(Map<String, dynamic> json) {

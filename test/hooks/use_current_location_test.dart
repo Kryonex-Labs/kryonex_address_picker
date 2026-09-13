@@ -37,8 +37,9 @@ void main() {
       expect(captured!.isLoading, isFalse);
     });
 
-    testWidgets('permission denied after request returns error',
-        (tester) async {
+    testWidgets('permission denied after request returns error', (
+      tester,
+    ) async {
       installGeolocatorMock(
         checkPermission: LocationPermission.denied,
         requestPermission: LocationPermission.denied,
@@ -55,9 +56,11 @@ void main() {
 
     testWidgets('generic exception returns fallback error', (tester) async {
       final mock = installGeolocatorMock();
-      when(() => mock.getCurrentPosition(
-            locationSettings: any(named: 'locationSettings'),
-          )).thenThrow(Exception('GPS hardware failure'));
+      when(
+        () => mock.getCurrentPosition(
+          locationSettings: any(named: 'locationSettings'),
+        ),
+      ).thenThrow(Exception('GPS hardware failure'));
 
       await tester.pumpWidget(buildHarness());
 

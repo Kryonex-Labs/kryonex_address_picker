@@ -99,9 +99,8 @@ class PhotonService implements GeocodingService {
   @override
   Future<StructuredAddress?> reverse(double lat, double lon) async {
     debugPrint('[AddressPicker] Photon.reverse: ($lat, $lon)');
-    final uri = Uri.parse(
-      '$_baseUrl/reverse',
-    ).replace(queryParameters: {'lat': '$lat', 'lon': '$lon', 'limit': '1'});
+    final uri = Uri.parse('$_baseUrl/reverse')
+        .replace(queryParameters: {'lat': '$lat', 'lon': '$lon', 'limit': '1'});
 
     try {
       final response = await _client.get(uri, headers: _headers);
@@ -137,8 +136,7 @@ class PhotonService implements GeocodingService {
     String input, {
     String? lang,
     int limit = 5,
-  }) async =>
-      const [];
+  }) async => const [];
 
   @override
   Future<GeocodingResult?> placeDetails(String placeId) async => null;

@@ -16,10 +16,7 @@ import 'geocoding_service.dart';
 /// delegated exclusively to the primary service — there is no Photon fallback
 /// for these since Photon does not expose a compatible autocomplete endpoint.
 class FallbackGeocodingService implements GeocodingService {
-  FallbackGeocodingService({
-    required this.primary,
-    required this.fallback,
-  });
+  FallbackGeocodingService({required this.primary, required this.fallback});
 
   /// Service tried first.
   final GeocodingService primary;
@@ -42,7 +39,9 @@ class FallbackGeocodingService implements GeocodingService {
         limit: limit,
       );
     } catch (e) {
-      debugPrint('[AddressPicker] Primary failed ($e), falling back for search("$query")');
+      debugPrint(
+        '[AddressPicker] Primary failed ($e), falling back for search("$query")',
+      );
       return fallback.search(
         query,
         countryCodes: countryCodes,
@@ -57,7 +56,9 @@ class FallbackGeocodingService implements GeocodingService {
     try {
       return await primary.reverse(lat, lon);
     } catch (e) {
-      debugPrint('[AddressPicker] Primary failed ($e), falling back for reverse($lat, $lon)');
+      debugPrint(
+        '[AddressPicker] Primary failed ($e), falling back for reverse($lat, $lon)',
+      );
       return fallback.reverse(lat, lon);
     }
   }

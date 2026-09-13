@@ -137,25 +137,27 @@ class AddressDetailSheet extends HookWidget {
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(context).viewInsets.bottom,
           ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.vertical(top: radius),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(
-              sigmaX: config.sheetBlurSigma,
-              sigmaY: config.sheetBlurSigma,
-            ),
-            child: Container(
-              decoration: BoxDecoration(
-                color: colors.background.withValues(alpha: 0.85),
-                borderRadius: BorderRadius.vertical(top: radius),
-                border: Border(
-                  top: BorderSide(color: colors.border.withValues(alpha: 0.6)),
-                ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.vertical(top: radius),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(
+                sigmaX: config.sheetBlurSigma,
+                sigmaY: config.sheetBlurSigma,
               ),
-              child: SafeArea(
-                top: false,
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: colors.background.withValues(alpha: 0.85),
+                  borderRadius: BorderRadius.vertical(top: radius),
+                  border: Border(
+                    top: BorderSide(
+                      color: colors.border.withValues(alpha: 0.6),
+                    ),
+                  ),
+                ),
+                child: SafeArea(
+                  top: false,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [

@@ -5,11 +5,7 @@ import 'package:flutter/material.dart';
 /// A simple drop-pin icon rendered as a Flutter widget so it can
 /// be used with [flutter_map]'s [Marker] widget builder.
 class MapPin extends StatelessWidget {
-  const MapPin({
-    super.key,
-    this.size = 40.0,
-    this.color,
-  });
+  const MapPin({super.key, this.size = 40.0, this.color});
 
   /// The size of the pin icon.
   final double size;

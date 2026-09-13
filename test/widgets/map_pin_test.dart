@@ -6,15 +6,18 @@ import '../_support/test_app.dart';
 
 void main() {
   group('MapPin', () {
-    testWidgets('renders the location_pin icon at the default size',
-        (tester) async {
+    testWidgets('renders the location_pin icon at the default size', (
+      tester,
+    ) async {
       await tester.pumpWidget(wrapForTest(const MapPin()));
 
       final icon = tester.widget<Icon>(find.byIcon(Icons.location_pin));
       expect(icon.size, 40.0);
     });
 
-    testWidgets('default color resolves from colorScheme.primary', (tester) async {
+    testWidgets('default color resolves from colorScheme.primary', (
+      tester,
+    ) async {
       final theme = ThemeData(colorSchemeSeed: Colors.blue);
       await tester.pumpWidget(
         MaterialApp(

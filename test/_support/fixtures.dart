@@ -40,9 +40,7 @@ const Map<String, dynamic> photonFeatureMinimal = {
     'type': 'Point',
     'coordinates': [-122.4194, 37.7749], // San Francisco
   },
-  'properties': {
-    'name': 'Somewhere',
-  },
+  'properties': {'name': 'Somewhere'},
 };
 
 /// A full Photon `FeatureCollection` body (as a JSON string) with one feature.
@@ -53,10 +51,8 @@ String photonSearchBody({Map<String, dynamic> feature = photonFeatureFull}) =>
     });
 
 /// A Photon `FeatureCollection` body with no features.
-String photonEmptyBody() => json.encode({
-      'type': 'FeatureCollection',
-      'features': <dynamic>[],
-    });
+String photonEmptyBody() =>
+    json.encode({'type': 'FeatureCollection', 'features': <dynamic>[]});
 
 /// Malformed JSON that should make the service swallow the error.
 const String malformedBody = '{ this is not valid json';
@@ -121,23 +117,22 @@ const Map<String, dynamic> googleResultMinimal = {
 };
 
 /// Google Geocoding API response body with one result (status: OK).
-String googleSearchBody({
-  Map<String, dynamic> result = googleResultFull,
-}) =>
-    json.encode({'status': 'OK', 'results': [result]});
+String googleSearchBody({Map<String, dynamic> result = googleResultFull}) =>
+    json.encode({
+      'status': 'OK',
+      'results': [result],
+    });
 
 /// Google Geocoding API response body with zero results.
-String googleEmptyBody() => json.encode({
-      'status': 'ZERO_RESULTS',
-      'results': <dynamic>[],
-    });
+String googleEmptyBody() =>
+    json.encode({'status': 'ZERO_RESULTS', 'results': <dynamic>[]});
 
 /// Google Geocoding API error response body.
 String googleErrorBody(String status) => json.encode({
-      'status': status,
-      'error_message': 'Something went wrong',
-      'results': <dynamic>[],
-    });
+  'status': status,
+  'error_message': 'Something went wrong',
+  'results': <dynamic>[],
+});
 
 // ─── Model builders ─────────────────────────────────────────────────────────
 
@@ -171,10 +166,7 @@ SelectedAddress buildSelectedAddress({
   StructuredAddress? address,
   AddressDetails? details,
 }) {
-  return SelectedAddress(
-    address: address ?? buildAddress(),
-    details: details,
-  );
+  return SelectedAddress(address: address ?? buildAddress(), details: details);
 }
 
 // ─── Places API (New) fixtures ───────────────────────────────────────────────
@@ -209,15 +201,13 @@ const Map<String, dynamic> placeSuggestionNoSecondary = {
 /// Places API (New) autocomplete response body with one suggestion.
 String placesAutocompleteBody({
   Map<String, dynamic> suggestion = placeSuggestionFull,
-}) =>
-    json.encode({
-      'suggestions': [suggestion],
-    });
+}) => json.encode({
+  'suggestions': [suggestion],
+});
 
 /// Places API (New) autocomplete response with zero suggestions.
-String placesEmptyAutocompleteBody() => json.encode({
-      'suggestions': <dynamic>[],
-    });
+String placesEmptyAutocompleteBody() =>
+    json.encode({'suggestions': <dynamic>[]});
 
 /// A fully-populated Places API (New) place details object.
 ///

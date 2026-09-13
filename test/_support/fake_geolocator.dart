@@ -40,13 +40,14 @@ MockGeolocatorPlatform installGeolocatorMock({
   final mock = MockGeolocatorPlatform();
   GeolocatorPlatform.instance = mock;
 
-  when(mock.isLocationServiceEnabled)
-      .thenAnswer((_) async => serviceEnabled);
+  when(mock.isLocationServiceEnabled).thenAnswer((_) async => serviceEnabled);
   when(mock.checkPermission).thenAnswer((_) async => checkPermission);
   when(mock.requestPermission).thenAnswer((_) async => requestPermission);
-  when(() => mock.getCurrentPosition(
-        locationSettings: any(named: 'locationSettings'),
-      )).thenAnswer((_) async => position ?? fakePosition());
+  when(
+    () => mock.getCurrentPosition(
+      locationSettings: any(named: 'locationSettings'),
+    ),
+  ).thenAnswer((_) async => position ?? fakePosition());
 
   return mock;
 }

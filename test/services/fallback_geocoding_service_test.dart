@@ -219,8 +219,7 @@ void main() {
     });
 
     test('rethrows when both primary and fallback throw', () async {
-      when(() => primary.reverse(any(), any()))
-          .thenThrow(Exception('primary'));
+      when(() => primary.reverse(any(), any())).thenThrow(Exception('primary'));
       when(() => fallback.reverse(any(), any()))
           .thenThrow(Exception('fallback'));
 

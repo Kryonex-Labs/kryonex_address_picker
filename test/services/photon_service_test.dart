@@ -32,12 +32,14 @@ void main() {
   }
 
   group('PhotonService.search', () {
-    test('returns [] without hitting the network for empty/blank query',
-        () async {
-      expect(await service.search(''), isEmpty);
-      expect(await service.search('   '), isEmpty);
-      verifyNever(() => client.get(any(), headers: any(named: 'headers')));
-    });
+    test(
+      'returns [] without hitting the network for empty/blank query',
+      () async {
+        expect(await service.search(''), isEmpty);
+        expect(await service.search('   '), isEmpty);
+        verifyNever(() => client.get(any(), headers: any(named: 'headers')));
+      },
+    );
 
     test('parses features into GeocodingResults', () async {
       stubGet(httpResponse(photonSearchBody()));
@@ -49,26 +51,28 @@ void main() {
       expect(results.single.latLng.latitude, closeTo(12.9716, 1e-9));
     });
 
-    test('builds the request URI with q, limit and uppercased countrycodes',
-        () async {
-      stubGet(httpResponse(photonEmptyBody()));
+    test(
+      'builds the request URI with q, limit and uppercased countrycodes',
+      () async {
+        stubGet(httpResponse(photonEmptyBody()));
 
-      await service.search(
-        'cafe',
-        countryCodes: ['in', 'us'],
-        lang: 'en',
-        limit: 3,
-      );
+        await service.search(
+          'cafe',
+          countryCodes: ['in', 'us'],
+          lang: 'en',
+          limit: 3,
+        );
 
-      final uri = capturedUri();
-      expect(uri.host, 'photon.komoot.io');
-      expect(uri.path, '/api/');
-      expect(uri.queryParameters['q'], 'cafe');
-      expect(uri.queryParameters['limit'], '3');
-      expect(uri.queryParameters['lang'], 'en');
-      // Country codes are uppercased and repeated.
-      expect(uri.queryParametersAll['countrycode'], ['IN', 'US']);
-    });
+        final uri = capturedUri();
+        expect(uri.host, 'photon.komoot.io');
+        expect(uri.path, '/api/');
+        expect(uri.queryParameters['q'], 'cafe');
+        expect(uri.queryParameters['limit'], '3');
+        expect(uri.queryParameters['lang'], 'en');
+        // Country codes are uppercased and repeated.
+        expect(uri.queryParametersAll['countrycode'], ['IN', 'US']);
+      },
+    );
 
     test('omits lang when not provided', () async {
       stubGet(httpResponse(photonEmptyBody()));
@@ -80,9 +84,11 @@ void main() {
       stubGet(httpResponse(photonEmptyBody()));
       await service.search('cafe');
 
-      final headers = verify(
-        () => client.get(any(), headers: captureAny(named: 'headers')),
-      ).captured.single as Map<String, String>;
+      final headers =
+          verify(() => client.get(any(), headers: captureAny(named: 'headers')))
+                  .captured
+                  .single
+              as Map<String, String>;
       expect(headers['User-Agent'], service.userAgent);
       expect(headers['Accept'], 'application/json');
     });
