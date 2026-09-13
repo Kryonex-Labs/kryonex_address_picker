@@ -132,10 +132,11 @@ class AddressDetailSheet extends HookWidget {
 
     return FTheme(
       data: theme,
-      child: Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
+      child: ExcludeSemantics(
+        child: Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
         child: ClipRRect(
           borderRadius: BorderRadius.vertical(top: radius),
           child: BackdropFilter(
@@ -153,19 +154,8 @@ class AddressDetailSheet extends HookWidget {
               ),
               child: SafeArea(
                 top: false,
-                child: TweenAnimationBuilder<double>(
-                  duration: const Duration(milliseconds: 320),
-                  curve: Curves.easeOutCubic,
-                  tween: Tween(begin: 0, end: 1),
-                  builder: (context, t, child) => Opacity(
-                    opacity: t,
-                    child: Transform.translate(
-                      offset: Offset(0, (1 - t) * 16),
-                      child: child,
-                    ),
-                  ),
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
