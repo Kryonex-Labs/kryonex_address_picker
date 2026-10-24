@@ -7,7 +7,7 @@ import 'package:forui/forui.dart';
 Widget wrapForTest(Widget child) {
   return MaterialApp(
     home: FTheme(
-      data: FThemes.neutral.light.touch,
+      data: FTheme.neutral.light.touch,
       child: Scaffold(body: child),
     ),
   );

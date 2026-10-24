@@ -1,5 +1,31 @@
 # Changelog
 
+## 0.1.0
+
+### Fixed
+- **Material theme bridge is no longer a no-op** (#7) — `bridgeFromMaterial`
+  now maps 14 `ColorScheme` fields onto ForUI `FColors` (`primary`,
+  `primaryForeground`, `secondary`, `secondaryForeground`, `background`,
+  `foreground`, `border`, `muted`, `mutedForeground`, `destructive`,
+  `destructiveForeground`, `error`, `errorForeground`, `card`). Host apps
+  using `AddressPickerConfig(materialTheme: Theme.of(context))` will now
+  see their colors reflected in the picker.
+- Search bar double-border artifact on focus — border width is now constant
+  (`1.5`) instead of animating `1`→`1.5` alongside the color tween.
+- "Pick on Map" button was near-invisible on light themes — replaced
+  `FButton(variant: .outline)` with a Material `OutlinedButton` using
+  explicit `foreground`/`border` colors.
+- `_SearchBar` now rebuilds its border color tween on `didUpdateWidget`
+  when bridged colors change (hot-reload / dynamic theme switch).
+- Safe-area bottom padding added to the initial content `ListView`.
+
+### Changed
+- Upgraded `forui` from `^0.22.1` to `^0.27.6` and migrated to its new APIs
+  (`FThemes` → `FTheme`, `typography.sm` → `typography.body.sm`).
+- Upgraded `flutter_hooks` from `^0.20.0` to `^0.21.3`.
+- Upgraded `geolocator` from `^13.0.0` to `^14.1.2`.
+- Upgraded `latlong2` from `^0.9.0` to `^0.10.1`.
+
 ## 0.0.9
 
 ### Fixed
