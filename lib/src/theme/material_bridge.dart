@@ -3,24 +3,51 @@ import 'package:forui/forui.dart';
 
 /// Bridges a Material [ThemeData] into a ForUI [FThemeData].
 ///
-/// This enables host apps using Material theming to get consistent
-/// colors and typography in the picker without manually creating
-/// an [FThemeData].
+/// Maps [ColorScheme] colors onto the ForUI [FColors] equivalents so
+/// host apps get consistent theming without an explicit [FThemeData].
 ///
-/// The bridge maps:
-/// - `colorScheme.primary` → ForUI primary
-/// - `colorScheme.secondary` → ForUI secondary
-/// - `colorScheme.surface` → ForUI background
-/// - `colorScheme.error` → ForUI destructive
-/// - `textTheme` → ForUI typography (scaled)
-/// - `brightness` → light / dark ForUI theme base
+/// Mapped colors:
+/// - `colorScheme.primary` → `FColors.primary`
+/// - `colorScheme.onPrimary` → `FColors.primaryForeground`
+/// - `colorScheme.secondary` → `FColors.secondary`
+/// - `colorScheme.onSecondary` → `FColors.secondaryForeground`
+/// - `colorScheme.surface` → `FColors.background`
+/// - `colorScheme.onSurface` → `FColors.foreground`
+/// - `colorScheme.outline` → `FColors.border`
+/// - `colorScheme.surfaceContainerHighest` → `FColors.muted`
+/// - `colorScheme.onSurfaceVariant` → `FColors.mutedForeground`
+/// - `colorScheme.error` → `FColors.error` / `FColors.destructive`
+/// - `colorScheme.onError` → `FColors.errorForeground` / `FColors.destructiveForeground`
+/// - `colorScheme.surfaceContainerLow` → `FColors.card`
+///
 FThemeData bridgeFromMaterial(ThemeData material) {
-  // Start with the appropriate ForUI base theme.
   final base = material.brightness == Brightness.dark
       ? FThemes.neutral.dark.touch
       : FThemes.neutral.light.touch;
 
-  return base;
+  final cs = material.colorScheme;
+
+  // ponytail: FThemeData(colors:, touch:) recomputes all widget styles from
+  // the bridged colors — no need to copy individual component styles.
+  return FThemeData(
+    colors: base.colors.copyWith(
+      primary: cs.primary,
+      primaryForeground: cs.onPrimary,
+      secondary: cs.secondary,
+      secondaryForeground: cs.onSecondary,
+      background: cs.surface,
+      foreground: cs.onSurface,
+      border: cs.outline,
+      muted: cs.surfaceContainerHighest,
+      mutedForeground: cs.onSurfaceVariant,
+      destructive: cs.error,
+      destructiveForeground: cs.onError,
+      error: cs.error,
+      errorForeground: cs.onError,
+      card: cs.surfaceContainerLow,
+    ),
+    touch: true,
+  );
 }
 
 /// Resolves the [FThemeData] to use for the picker.
