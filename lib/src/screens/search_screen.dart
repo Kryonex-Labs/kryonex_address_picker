@@ -277,7 +277,12 @@ class SearchScreen extends HookWidget {
     FColors colors,
   ) {
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+      padding: EdgeInsets.fromLTRB(
+        20,
+        12,
+        20,
+        20 + MediaQuery.of(context).padding.bottom,
+      ),
       children: [
         // Use current location
         Material(
@@ -372,13 +377,23 @@ class SearchScreen extends HookWidget {
         ],
 
         // Pick on Map fallback
-        DecoratedBox(
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(14)),
-          child: FButton(
-            variant: .outline,
-            onPress: onPickOnMap,
-            suffix: const Icon(Icons.map_outlined, size: 18),
-            child: const Text('Pick on Map'),
+        SizedBox(
+          width: double.infinity,
+          height: 48,
+          child: OutlinedButton.icon(
+            onPressed: onPickOnMap,
+            icon: const Text('Pick on Map'),
+            label: Icon(Icons.map_outlined, size: 18, color: colors.foreground),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: colors.foreground,
+              side: BorderSide(color: colors.border),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+              textStyle: theme.typography.sm.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ),
       ],
@@ -428,6 +443,16 @@ class _SearchBarState extends State<_SearchBar>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    _rebuildBorderTween();
+  }
+
+  @override
+  void didUpdateWidget(covariant _SearchBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.colors != widget.colors) _rebuildBorderTween();
+  }
+
+  void _rebuildBorderTween() {
     _borderColor = ColorTween(
       begin: widget.colors.border.withValues(alpha: 0.5),
       end: widget.colors.primary,
@@ -470,7 +495,7 @@ class _SearchBarState extends State<_SearchBar>
               color:
                   _borderColor.value ??
                   widget.colors.border.withValues(alpha: 0.5),
-              width: _focusNode.hasFocus ? 1.5 : 1,
+              width: 1.5,
             ),
           ),
           child: Row(
