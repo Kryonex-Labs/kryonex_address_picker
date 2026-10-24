@@ -22,8 +22,8 @@ import 'package:forui/forui.dart';
 ///
 FThemeData bridgeFromMaterial(ThemeData material) {
   final base = material.brightness == Brightness.dark
-      ? FThemes.neutral.dark.touch
-      : FThemes.neutral.light.touch;
+      ? FTheme.neutral.dark.touch
+      : FTheme.neutral.light.touch;
 
   final cs = material.colorScheme;
 

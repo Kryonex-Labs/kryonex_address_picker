@@ -241,7 +241,7 @@ class _Header extends StatelessWidget {
       children: [
         Text(
           config.detailSheetTitle,
-          style: theme.typography.xl2.copyWith(
+          style: theme.typography.body.xl2.copyWith(
             color: colors.foreground,
             fontWeight: FontWeight.w700,
             letterSpacing: -0.5,
@@ -251,7 +251,9 @@ class _Header extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             config.detailSheetSubtitle!,
-            style: theme.typography.sm.copyWith(color: colors.mutedForeground),
+            style: theme.typography.body.sm.copyWith(
+              color: colors.mutedForeground,
+            ),
           ),
         ],
       ],
@@ -295,7 +297,7 @@ class _AddressChip extends StatelessWidget {
                   address.primaryLine,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: theme.typography.sm.copyWith(
+                  style: theme.typography.body.sm.copyWith(
                     color: colors.foreground,
                     fontWeight: FontWeight.w600,
                   ),
@@ -304,7 +306,7 @@ class _AddressChip extends StatelessWidget {
                   address.secondaryLine,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: theme.typography.xs.copyWith(
+                  style: theme.typography.body.xs.copyWith(
                     color: colors.mutedForeground,
                   ),
                 ),

@@ -62,9 +62,14 @@ void main() {
     });
 
     test('preserves base font family', () {
-      final base = FThemes.neutral.light.touch;
-      final bridged = bridgeFromMaterial(ThemeData(brightness: Brightness.light));
-      expect(bridged.typography.fontFamily, base.typography.fontFamily);
+      final base = FTheme.neutral.light.touch;
+      final bridged = bridgeFromMaterial(
+        ThemeData(brightness: Brightness.light),
+      );
+      expect(
+        bridged.typography.body.fontFamily,
+        base.typography.body.fontFamily,
+      );
     });
   });
 
@@ -72,7 +77,7 @@ void main() {
     testWidgets('returns the explicit ForUI theme when provided', (
       tester,
     ) async {
-      final explicit = FThemes.neutral.dark.touch;
+      final explicit = FTheme.neutral.dark.touch;
       late FThemeData resolved;
 
       await tester.pumpWidget(
