@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.0+1
+
+### Fixed
+- Host-theme border bleed on search bar (#11) — added explicit
+  `focusedBorder: InputBorder.none` and `enabledBorder: InputBorder.none`
+  so Material themes that define default `InputDecoration` borders cannot
+  override the picker's borderless text field.
+
 ## 0.1.0
 
 ### Fixed
