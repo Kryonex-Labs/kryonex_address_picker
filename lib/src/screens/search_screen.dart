@@ -529,6 +529,8 @@ class _SearchBarState extends State<_SearchBar>
                       color: widget.colors.mutedForeground,
                     ),
                     border: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    enabledBorder: InputBorder.none,
                     isDense: true,
                     contentPadding: EdgeInsets.zero,
                   ),
