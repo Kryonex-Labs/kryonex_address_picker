@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.1
+
+### Added
+- `showAddressPicker(initialLatLng:)` — open the map directly at a saved
+  coordinate with pin placed, skipping search. Use for edit-address flows (#14).
+- Center-pin mode on `MapConfirmScreen` — fixed crosshair overlay lets users
+  pan the map to fine-tune location. Reverse geocoding fires on camera idle
+  (OSM: debounced `onPositionChanged`; Google Maps: native `onCameraIdle`).
+  Tap-to-place still works alongside (#13).
+
 ## 0.1.0+1
 
 ### Fixed
