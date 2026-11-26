@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart' as google_maps;
 import 'package:kryonex_address_picker/kryonex_address_picker.dart';
 import 'package:kryonex_address_picker/src/screens/map_confirm_screen.dart';
@@ -8,6 +9,7 @@ import 'package:kryonex_address_picker/src/widgets/map_pin.dart';
 
 import '../_support/fake_geolocator.dart';
 import '../_support/fixtures.dart';
+import '../_support/mock_geocoding.dart';
 
 /// Wraps [MapConfirmScreen] in a minimal [MaterialApp].
 Widget buildMapScreen({
@@ -48,23 +50,25 @@ void main() {
       expect(find.byType(google_maps.GoogleMap), findsOneWidget);
       expect(find.byType(FlutterMap), findsNothing);
 
-      var googleMap = tester.widget<google_maps.GoogleMap>(
-        find.byType(google_maps.GoogleMap),
-      );
-      expect(
-        googleMap.markers.single.position,
-        const google_maps.LatLng(12.9716, 77.5946),
-      );
+      expect(find.byType(MapPin), findsOneWidget);
+      await drainForUiTimers(tester);
+    });
 
-      googleMap.onTap!(const google_maps.LatLng(40.7128, -74.0060));
+    testWidgets('center pin renders by default, ignoring pointers', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildMapScreen(initialAddress: null, onConfirm: (_) {}),
+      );
       await tester.pump();
 
-      googleMap = tester.widget<google_maps.GoogleMap>(
-        find.byType(google_maps.GoogleMap),
-      );
+      expect(find.byType(MapPin), findsOneWidget);
       expect(
-        googleMap.markers.single.position,
-        const google_maps.LatLng(40.7128, -74.0060),
+        find.ancestor(
+          of: find.byType(MapPin),
+          matching: find.byType(IgnorePointer),
+        ),
+        findsWidgets,
       );
       await drainForUiTimers(tester);
     });
@@ -398,6 +402,58 @@ void main() {
 
       // No error SnackBar should appear.
       expect(find.byType(SnackBar), findsNothing);
+    });
+  });
+
+  group('MapConfirmScreen — center pin reverse geocoding (OSM)', () {
+    late MockGeocodingService geo;
+
+    setUp(() {
+      geo = MockGeocodingService();
+      when(() => geo.reverse(any(), any())).thenAnswer((_) async => null);
+      when(geo.dispose).thenAnswer((_) async {});
+    });
+
+    Future<void> pumpOsm(WidgetTester tester) async {
+      await tester.pumpWidget(
+        buildMapScreen(
+          initialAddress: null,
+          onConfirm: (_) {},
+          config: AddressPickerConfig(geocodingService: geo),
+        ),
+      );
+      await tester.pump();
+    }
+
+    testWidgets('drag settles after debounce, then reverse geocodes center', (
+      tester,
+    ) async {
+      await pumpOsm(tester);
+      verifyNever(() => geo.reverse(any(), any()));
+
+      await tester.drag(find.byType(FlutterMap), const Offset(0, -80));
+      await tester.pump();
+      // Still inside the 350 ms debounce window.
+      await tester.pump(const Duration(milliseconds: 100));
+      verifyNever(() => geo.reverse(any(), any()));
+
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pump();
+      verify(() => geo.reverse(any(), any())).called(1);
+      await drainForUiTimers(tester);
+    });
+
+    testWidgets('tap still places selection and reverse geocodes', (
+      tester,
+    ) async {
+      await pumpOsm(tester);
+
+      await tester.tapAt(tester.getCenter(find.byType(FlutterMap)));
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pump();
+
+      verify(() => geo.reverse(any(), any())).called(1);
+      await drainForUiTimers(tester);
     });
   });
 }
