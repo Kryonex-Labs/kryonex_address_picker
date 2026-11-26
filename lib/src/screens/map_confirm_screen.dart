@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -46,6 +48,13 @@ class MapConfirmScreen extends HookWidget {
     final googleMapController = useRef<google_maps.GoogleMapController?>(null);
     final selectedLatLng = useState<LatLng?>(
       initialAddress?.latLng ?? initialLatLng,
+    );
+    final debounce = useRef<Timer?>(null);
+    final lastCenter = useRef<LatLng?>(null);
+    useEffect(
+      () =>
+          () => debounce.value?.cancel(),
+      const [],
     );
     final geocodingService = useMemoized(
       () => config.createGeocodingService(),
@@ -110,7 +119,17 @@ class MapConfirmScreen extends HookWidget {
           initialCenter: initialCenter,
           initialZoom: config.mapZoom,
           onTap: (tapPosition, latLng) {
+            debounce.value?.cancel();
             selectedLatLng.value = latLng;
+            mapController.move(latLng, mapController.camera.zoom);
+          },
+          onPositionChanged: (camera, hasGesture) {
+            if (!hasGesture) return;
+            debounce.value?.cancel();
+            // ponytail: 350 ms hardcoded, make configurable only if asked.
+            debounce.value = Timer(const Duration(milliseconds: 350), () {
+              selectedLatLng.value = camera.center;
+            });
           },
         ),
         children: [
@@ -130,20 +149,6 @@ class MapConfirmScreen extends HookWidget {
                       ColorFiltered(colorFilter: darkTileFilter, child: tile)
                 : null,
           ),
-          if (selectedLatLng.value != null)
-            MarkerLayer(
-              markers: [
-                Marker(
-                  point: selectedLatLng.value!,
-                  width: 40,
-                  height: 40,
-                  alignment: Alignment.topCenter,
-                  child: config.pinBuilder != null
-                      ? config.pinBuilder!(context)
-                      : MapPin(color: colorScheme.primary),
-                ),
-              ],
-            ),
           if (config.attributionStyle != null)
             _buildAttribution(config.attributionStyle!),
         ],
@@ -158,13 +163,20 @@ class MapConfirmScreen extends HookWidget {
         },
         onTap: (latLng) {
           selectedLatLng.value = _fromGoogleLatLng(latLng);
+          googleMapController.value?.animateCamera(
+            google_maps.CameraUpdate.newLatLng(latLng),
+          );
         },
-        markers: {
-          if (selectedLatLng.value != null)
-            google_maps.Marker(
-              markerId: const google_maps.MarkerId('selected-location'),
-              position: _toGoogleLatLng(selectedLatLng.value!),
-            ),
+        onCameraMove: (pos) => lastCenter.value = _fromGoogleLatLng(pos.target),
+        onCameraIdle: () {
+          final c = lastCenter.value;
+          final ref = selectedLatLng.value ?? initialCenter;
+          // Skip programmatic moves / initial idle: only a real shift counts.
+          if (c != null &&
+              ((c.latitude - ref.latitude).abs() > 1e-5 ||
+                  (c.longitude - ref.longitude).abs() > 1e-5)) {
+            selectedLatLng.value = c;
+          }
         },
         mapToolbarEnabled: false,
         myLocationButtonEnabled: false,
@@ -195,6 +207,29 @@ class MapConfirmScreen extends HookWidget {
             children: [
               map,
 
+              // Fixed center pin; google map padding shifts its target up 95px.
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      bottom:
+                          config.mapProvider ==
+                              AddressPickerMapProvider.googleMaps
+                          ? 190
+                          : 0,
+                    ),
+                    child: Center(
+                      child: Transform.translate(
+                        offset: const Offset(0, -20),
+                        child:
+                            config.pinBuilder?.call(context) ??
+                            MapPin(color: colorScheme.primary),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
               // Locate Me button
               Positioned(
                 right: 16,
@@ -212,6 +247,7 @@ class MapConfirmScreen extends HookWidget {
                               );
                             }
                           } else if (result.location != null) {
+                            debounce.value?.cancel();
                             selectedLatLng.value = result.location!;
                             switch (config.mapProvider) {
                               case AddressPickerMapProvider.openStreetMap:
