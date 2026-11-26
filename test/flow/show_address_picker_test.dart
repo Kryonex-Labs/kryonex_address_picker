@@ -1,8 +1,11 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kryonex_address_picker/kryonex_address_picker.dart';
+import 'package:kryonex_address_picker/src/widgets/map_pin.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../_support/fake_geolocator.dart';
@@ -13,8 +16,9 @@ import '../_support/fixtures.dart';
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _Host extends StatefulWidget {
-  const _Host({required this.config});
+  const _Host({required this.config, this.initialLatLng});
   final AddressPickerConfig config;
+  final LatLng? initialLatLng;
   @override
   State<_Host> createState() => _HostState();
 }
@@ -29,7 +33,11 @@ class _HostState extends State<_Host> {
         children: [
           ElevatedButton(
             onPressed: () async {
-              final r = await showAddressPicker(context, config: widget.config);
+              final r = await showAddressPicker(
+                context,
+                config: widget.config,
+                initialLatLng: widget.initialLatLng,
+              );
               if (mounted) setState(() => result = r);
             },
             child: const Text('open'),
@@ -41,8 +49,13 @@ class _HostState extends State<_Host> {
   }
 }
 
-Widget buildHost({AddressPickerConfig config = const AddressPickerConfig()}) {
-  return MaterialApp(home: _Host(config: config));
+Widget buildHost({
+  AddressPickerConfig config = const AddressPickerConfig(),
+  LatLng? initialLatLng,
+}) {
+  return MaterialApp(
+    home: _Host(config: config, initialLatLng: initialLatLng),
+  );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -199,5 +212,41 @@ void main() {
         expect(find.text('result:${address.displayName}'), findsOneWidget);
       },
     );
+
+    // ── initialLatLng ─────────────────────────────────────────────────────────
+    testWidgets('initialLatLng opens MapConfirmScreen directly at that point', (
+      tester,
+    ) async {
+      const point = LatLng(12.34, 56.78);
+      await tester.pumpWidget(
+        buildHost(
+          config: const AddressPickerConfig(localeAwareSearch: false),
+          initialLatLng: point,
+        ),
+      );
+
+      await tester.tap(find.text('open'));
+      await advance(tester);
+
+      expect(find.text('Confirm Location'), findsOneWidget);
+      expect(find.text('Search Address'), findsNothing);
+
+      final map = tester.widget<FlutterMap>(find.byType(FlutterMap));
+      expect(map.options.initialCenter, point);
+      expect(find.byType(MapPin), findsOneWidget);
+
+      await advance(tester);
+    });
+
+    testWidgets('without initialLatLng shows SearchScreen', (tester) async {
+      await tester.pumpWidget(
+        buildHost(config: const AddressPickerConfig(localeAwareSearch: false)),
+      );
+
+      await openPicker(tester);
+
+      expect(find.text('Search Address'), findsOneWidget);
+      expect(find.text('Confirm Location'), findsNothing);
+    });
   });
 }

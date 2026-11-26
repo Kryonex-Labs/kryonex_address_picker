@@ -112,7 +112,9 @@ class AddressPickerConfig {
   /// Material theme to auto-bridge to ForUI. Used when [theme] is null.
   final ThemeData? materialTheme;
 
-  /// Initial map center. Defaults to (0, 0) if not provided.
+  /// Fallback map camera center when no coordinate is supplied (used by the
+  /// confirm screen only). Defaults to San Francisco. To open the map at a
+  /// specific saved location, pass `initialLatLng` to `showAddressPicker`.
   final LatLng? initialLocation;
 
   /// ISO 3166-1 alpha-2 country codes to filter Nominatim results.
