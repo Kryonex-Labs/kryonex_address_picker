@@ -21,24 +21,40 @@ import 'theme/picker_theme.dart';
 ///   print(result.details?.apt);
 /// }
 /// ```
+///
+/// [initialLatLng] opens the map confirm screen directly at that coordinate
+/// with the pin placed, skipping search. Use for edit-address flows.
+/// [AddressPickerConfig.initialLocation] remains a camera-only fallback.
+///
+/// ```dart
+/// final result = await showAddressPicker(
+///   context,
+///   initialLatLng: LatLng(37.7749, -122.4194),
+/// );
+/// ```
 Future<SelectedAddress?> showAddressPicker(
   BuildContext context, {
   AddressPickerConfig? config,
+  LatLng? initialLatLng,
 }) {
   final effectiveConfig = config ?? const AddressPickerConfig();
 
   return Navigator.of(context).push<SelectedAddress>(
     MaterialPageRoute(
-      builder: (_) => _AddressPickerFlow(config: effectiveConfig),
+      builder: (_) => _AddressPickerFlow(
+        config: effectiveConfig,
+        initialLatLng: initialLatLng,
+      ),
     ),
   );
 }
 
 /// Internal widget that orchestrates the multi-screen picker flow.
 class _AddressPickerFlow extends StatefulWidget {
-  const _AddressPickerFlow({required this.config});
+  const _AddressPickerFlow({required this.config, this.initialLatLng});
 
   final AddressPickerConfig config;
+  final LatLng? initialLatLng;
 
   @override
   State<_AddressPickerFlow> createState() => _AddressPickerFlowState();
@@ -123,6 +139,15 @@ class _AddressPickerFlowState extends State<_AddressPickerFlow> {
 
   @override
   Widget build(BuildContext context) {
+    final latLng = widget.initialLatLng;
+    if (latLng != null) {
+      return MapConfirmScreen(
+        config: widget.config,
+        initialAddress: null,
+        initialLatLng: latLng,
+        onConfirm: _onMapConfirmed,
+      );
+    }
     return SearchScreen(
       config: widget.config,
       onAddressSelected: _onAddressSelected,
